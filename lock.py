@@ -73,6 +73,26 @@ def main():
     if missing:
         sys.exit("Missing plaintext pages in _unlocked/: " + ", ".join(missing))
 
+    # A previous run deletes the plaintext it encrypts. Re-running without
+    # restoring it would publish pages whose images silently never resolve.
+    absent = []
+    for slug in SLUGS:
+        t = open(os.path.join(UNLOCKED, slug + ".html"), encoding="utf-8").read()
+        for u in set(UPLOAD_RE.findall(t)):
+            if "*" in u:
+                continue
+            if not os.path.exists(os.path.join(ROOT, u.lstrip("/"))):
+                absent.append(u)
+    if absent:
+        print(f"{len(absent)} image(s) referenced by the protected pages are not on disk,")
+        print("because a previous lock.py run encrypted and removed them. Examples:")
+        for u in sorted(absent)[:5]:
+            print("   ", u)
+        print("\nRestore the originals before locking again, or the published pages")
+        print("will have missing images. Ask Claude to re-run restore.py.")
+        if input("\nContinue anyway? [y/N] ").strip().lower() != "y":
+            sys.exit("Aborted.")
+
     pw = getpass.getpass("Password to protect these pages: ")
     if len(pw) < 6:
         sys.exit("Please use at least 6 characters.")

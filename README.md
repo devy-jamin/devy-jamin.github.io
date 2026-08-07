@@ -41,6 +41,19 @@ git push
 
 GitHub Pages redeploys automatically, usually within a minute.
 
+## The password-protected case studies
+
+`nike-artemis/` and `nike-launch-admin/` are published as ciphertext only — the
+copy and every image are encrypted (AES-256-GCM). Editable originals live in
+`_unlocked/`, which git ignores and never publishes.
+
+- **Change the password or re-publish after editing:** `python3 lock.py`
+- **Check which password actually works:** `python3 unlock-test.py`
+
+`lock.py` deletes the plaintext images it encrypts, so they must be restored
+before locking again. It warns you if they're missing rather than publishing
+pages with broken images.
+
 ## Things worth knowing
 
 - `CNAME` holds the custom domain (`devyjamin.com`). **Don't delete it** — the
