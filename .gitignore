@@ -1,0 +1,13 @@
+# macOS junk
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
+# Plaintext of the password-protected case studies.
+# NEVER commit these — only their encrypted versions get published.
+_unlocked/
+
+# local editor/tooling config
+.claude/

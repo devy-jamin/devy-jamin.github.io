@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>__TITLE__</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto+Condensed%3A400%2C400i%2C700%2C700i%7CRoboto%3A400%2C400i%2C700%2C700i&#038;subset=latin%2Clatin-ext' media='all' />
+<link rel='stylesheet' href='/wp-content/themes/balasana-wpcom/style.css' media='all' />
+<link rel="icon" href="/wp-content/uploads/2017/07/cropped-logo-2-270x270.png" sizes="32x32" />
+<link rel="apple-touch-icon" href="/wp-content/uploads/2017/07/cropped-logo-2-270x270.png" />
+<style>
+  .lock-wrap { max-width: 30rem; margin: 0 auto; padding: 4rem 1rem 6rem; }
+  .lock-wrap h1 { margin: 0 0 .5rem; }
+  .lock-wrap p.lede { margin: 0 0 2rem; opacity: .7; }
+  .lock-form { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .lock-form input[type=password] { flex: 1 1 14rem; padding: .75rem; font: inherit;
+    border: 1px solid currentColor; background: transparent; color: inherit; }
+  .lock-form button { padding: .75rem 1.75rem; font: inherit; cursor: pointer;
+    border: 1px solid #111; background: #111; color: #fff; }
+  .lock-form button:hover { background: #333; border-color: #333; }
+  .lock-msg { margin-top: 1rem; min-height: 1.5em; font-size: .9rem; }
+  .lock-msg.err { color: #c0392b; }
+  .lock-note { margin-top: 2.5rem; font-size: .85rem; opacity: .6; }
+</style>
+</head>
+<body class="wp-embed-responsive wp-theme-varia-wpcom wp-child-theme-balasana-wpcom singular image-filters-enabled">
+<div id="page" class="site">
+  <header id="masthead" class="site-header responsive-max-width">
+    <div class="site-branding">
+      <p class="site-title"><a href="/" rel="home">Devy Jamin</a></p>
+    </div>
+  </header>
+
+  <div id="content" class="site-content">
+    <main class="site-main responsive-max-width">
+      <section class="lock-wrap">
+        <h1>__HEADING__</h1>
+        <p class="lede">This case study is password protected.</p>
+        <form class="lock-form" id="f">
+          <input type="password" id="pw" autocomplete="current-password"
+                 aria-label="Password" placeholder="Password" autofocus required />
+          <button type="submit">View</button>
+        </form>
+        <p class="lock-msg" id="msg" role="status" aria-live="polite"></p>
+        <p class="lock-note">Don't have the password?
+          <a href="mailto:devyjamin@gmail.com">Email me</a> and I'll share it.
+          &nbsp;·&nbsp; <a href="/">Back to work</a></p>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+(function () {
+  var SALT = "__SALT__", IV = "__IV__", CT = "__CT__", ITER = __ITER__;
+  var msg = document.getElementById('msg');
+  var form = document.getElementById('f');
+  var input = document.getElementById('pw');
+
+  function bytes(b64) {
+    var s = atob(b64), a = new Uint8Array(s.length);
+    for (var i = 0; i < s.length; i++) a[i] = s.charCodeAt(i);
+    return a;
+  }
+  function say(t, err) { msg.textContent = t; msg.className = 'lock-msg' + (err ? ' err' : ''); }
+
+  async function keyFrom(pw) {
+    var base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw),
+      'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: bytes(SALT), iterations: ITER, hash: 'SHA-256' },
+      base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  }
+
+  async function unlock(pw, remember) {
+    say('Unlocking…');
+    var key;
+    try {
+      key = await keyFrom(pw);
+      var plain = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: bytes(IV) }, key, bytes(CT));
+      var data = JSON.parse(new TextDecoder().decode(plain));
+    } catch (e) {
+      say('That password didn’t work. Try again.', true);
+      input.select();
+      return false;
+    }
+
+    var ids = Object.keys(data.assets);
+    var html = data.html;
+    for (var i = 0; i < ids.length; i++) {
+      var id = ids[i];
+      say('Loading media… ' + (i + 1) + ' of ' + ids.length);
+      try {
+        var buf = new Uint8Array(await (await fetch('/locked-assets/' + id + '.enc')).arrayBuffer());
+        var raw = await crypto.subtle.decrypt(
+          { name: 'AES-GCM', iv: buf.slice(0, 12) }, key, buf.slice(12));
+        var url = URL.createObjectURL(new Blob([raw], { type: data.assets[id].t }));
+        html = html.split('__ENC__' + id + '__').join(url);
+      } catch (e) { /* leave the token; a single bad asset shouldn't block the page */ }
+    }
+
+    if (remember) {
+      try { sessionStorage.setItem('dj-unlock-' + location.pathname, pw); } catch (e) {}
+    }
+    document.open(); document.write(html); document.close();
+    return true;
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (input.value) unlock(input.value, true);
+  });
+
+  // don't re-prompt when coming back during the same browser session
+  try {
+    var saved = sessionStorage.getItem('dj-unlock-' + location.pathname);
+    if (saved) unlock(saved, false);
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
