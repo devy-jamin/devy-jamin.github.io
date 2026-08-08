@@ -4527,3 +4527,21 @@ body.admin-bar .widget_eu_cookie_law_widget.widget.top {
 		top: 46px;
 	}
 }
+/* ============================================================
+   DJ CUSTOM OVERRIDES
+   Site-specific tweaks. Keep additions below this line so they
+   stay separate from the original theme CSS above.
+   ============================================================ */
+
+/* The theme renders an empty <footer id="colophon"> on every page.
+   It has no content but 32px of padding top and bottom, so it showed
+   as a 64px white bar under the black footer block. */
+#colophon.site-footer {
+	display: none;
+}
+
+/* ...and .site-main's own 32px bottom padding left a further white gap,
+   so the black footer block now runs to the bottom of the page. */
+.site-main {
+	padding-bottom: 0;
+}

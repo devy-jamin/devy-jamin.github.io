@@ -54,6 +54,16 @@ copy and every image are encrypted (AES-256-GCM). Editable originals live in
 before locking again. It warns you if they're missing rather than publishing
 pages with broken images.
 
+## Custom style tweaks
+
+Site-specific CSS lives at the **bottom** of
+`wp-content/themes/balasana-wpcom/style.css`, under a comment block marked
+`DJ CUSTOM OVERRIDES`. Add new tweaks there so they stay separate from the
+original theme CSS above it.
+
+That file is loaded by every page — including the encrypted case studies — so
+styling changes made there need no re-lock.
+
 ## Things worth knowing
 
 - `CNAME` holds the custom domain (`devyjamin.com`). **Don't delete it** — the
