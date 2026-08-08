@@ -4555,11 +4555,14 @@ body.admin-bar .widget_eu_cookie_law_widget.widget.top {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
 	gap: 20px;
-	margin: 0;
+	/* Bleed outward by exactly the card's horizontal padding, so the text
+	   inside the cards sits on the same left and right rule as the body copy
+	   above. Without this the card text is inset by 28px and looks misaligned. */
+	margin: 0 -28px;
 }
 .dj-outcome {
 	background: #f2f2f2;
-	border-radius: 8px;
+	border-radius: 16px;
 	padding: 30px 28px 26px;
 	min-height: 166px;
 	display: flex;
@@ -4577,7 +4580,7 @@ body.admin-bar .widget_eu_cookie_law_widget.widget.top {
 }
 .dj-outcome .dj-outcome-label {
 	margin: 24px 0 0;
-	font-size: 13px;
+	font-size: 16px;
 	line-height: 1.4;
 	color: #3a3a3a;
 }
@@ -4586,6 +4589,8 @@ body.admin-bar .widget_eu_cookie_law_widget.widget.top {
 	.dj-outcomes {
 		grid-template-columns: 1fr;
 		gap: 16px;
+		/* no bleed on small screens — it would overflow the viewport */
+		margin: 0;
 	}
 	.dj-outcome {
 		min-height: 0;
