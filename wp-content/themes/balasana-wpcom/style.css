@@ -4555,10 +4555,8 @@ body.admin-bar .widget_eu_cookie_law_widget.widget.top {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
 	gap: 20px;
-	/* Bleed outward by exactly the card's horizontal padding, so the text
-	   inside the cards sits on the same left and right rule as the body copy
-	   above. Without this the card text is inset by 28px and looks misaligned. */
-	margin: 0 -28px;
+	/* Card boxes sit flush with the body copy column above them. */
+	margin: 0;
 }
 .dj-outcome {
 	background: #f2f2f2;
@@ -4589,8 +4587,6 @@ body.admin-bar .widget_eu_cookie_law_widget.widget.top {
 	.dj-outcomes {
 		grid-template-columns: 1fr;
 		gap: 16px;
-		/* no bleed on small screens — it would overflow the viewport */
-		margin: 0;
 	}
 	.dj-outcome {
 		min-height: 0;
