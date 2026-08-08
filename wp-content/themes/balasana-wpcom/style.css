@@ -4545,3 +4545,53 @@ body.admin-bar .widget_eu_cookie_law_widget.widget.top {
 .site-main {
 	padding-bottom: 0;
 }
+
+/* Outcome stat cards (Nike Artemis "Outcome" section).
+   These used to be four flat PNGs stacked in a single column. They are now
+   real text: sharp at any zoom, selectable, readable by screen readers, and
+   editable without a design tool. Two per row, stacking on small screens.
+   To change a figure, edit the markup in _unlocked/nike-artemis.html. */
+.dj-outcomes {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 20px;
+	margin: 0;
+}
+.dj-outcome {
+	background: #f2f2f2;
+	border-radius: 8px;
+	padding: 30px 28px 26px;
+	min-height: 166px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	box-sizing: border-box;
+}
+.dj-outcome .dj-outcome-value {
+	margin: 0;
+	font-size: 40px;
+	line-height: 1.15;
+	font-weight: 400;
+	letter-spacing: -0.01em;
+	color: #1a1a1a;
+}
+.dj-outcome .dj-outcome-label {
+	margin: 24px 0 0;
+	font-size: 13px;
+	line-height: 1.4;
+	color: #3a3a3a;
+}
+
+@media only screen and (max-width: 560px) {
+	.dj-outcomes {
+		grid-template-columns: 1fr;
+		gap: 16px;
+	}
+	.dj-outcome {
+		min-height: 0;
+		padding: 24px 22px;
+	}
+	.dj-outcome .dj-outcome-value {
+		font-size: 32px;
+	}
+}
