@@ -4555,8 +4555,17 @@ body.admin-bar .widget_eu_cookie_law_widget.widget.top {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
 	gap: 20px;
-	/* Card boxes sit flush with the body copy column above them. */
 	margin: 0;
+}
+
+/* The cards live in their own wp-block-columns containing a single 80% column,
+   so they started at the left edge — level with the "Outcome" label rather than
+   the body copy. Every other row in this section is a 20% label column plus an
+   80% copy column, so we recreate that missing 20% column as a flex item. The
+   cards then line up exactly with the paragraph text above them. */
+.wp-block-columns:has(> .wp-block-column > .dj-outcomes)::before {
+	content: "";
+	flex: 0 1 20%;
 }
 .dj-outcome {
 	background: #f2f2f2;
@@ -4570,11 +4579,19 @@ body.admin-bar .widget_eu_cookie_law_widget.widget.top {
 }
 .dj-outcome .dj-outcome-value {
 	margin: 0;
-	font-size: 40px;
+	/* 34px is the largest size at which the longest value ("8 Geographies")
+	   still fits on one line inside a card. The content column is capped at
+	   750px, so the card width is fixed and this does not need to be fluid. */
+	font-size: 34px;
 	line-height: 1.15;
 	font-weight: 400;
 	letter-spacing: -0.01em;
 	color: #1a1a1a;
+	/* WordPress sets word-break: break-word on columns, which split
+	   "Geographies" mid-word. */
+	word-break: normal;
+	overflow-wrap: normal;
+	hyphens: none;
 }
 .dj-outcome .dj-outcome-label {
 	margin: 24px 0 0;
@@ -4584,6 +4601,10 @@ body.admin-bar .widget_eu_cookie_law_widget.widget.top {
 }
 
 @media only screen and (max-width: 560px) {
+	/* columns stack on small screens, so the 20% spacer must go */
+	.wp-block-columns:has(> .wp-block-column > .dj-outcomes)::before {
+		display: none;
+	}
 	.dj-outcomes {
 		grid-template-columns: 1fr;
 		gap: 16px;
