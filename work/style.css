@@ -528,16 +528,37 @@ figure {
 	filter: invert(1);
 }
 
+/* The rail sits on difference-blend, so a literal grey would invert to near
+   invisibility over the dark hero. Fading with opacity instead resolves to
+   light grey on the light slides and stays legible over the photograph;
+   full opacity gives the prominent outline on hover and for the current
+   slide. */
 .rail a {
+	position: relative;
 	width: 7px;
 	height: 7px;
 	border-radius: 50%;
 	border: 1px solid var(--ink);
-	transition: background 0.25s ease;
+	opacity: 0.3;
+	transition: opacity 0.2s ease, background 0.25s ease;
+}
+
+/* 7px is below a usable pointer target; widen it without shifting layout.
+   Dot pitch is 16px, so 15px keeps neighbours from overlapping. */
+.rail a::before {
+	content: '';
+	position: absolute;
+	inset: -4px;
+}
+
+.rail a:hover,
+.rail a:focus-visible {
+	opacity: 1;
 }
 
 .rail a[aria-current='true'] {
 	background: var(--ink);
+	opacity: 1;
 }
 
 /* --------------------------------------------------------------- responsive */
