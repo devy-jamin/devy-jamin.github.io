@@ -297,9 +297,12 @@ figure {
 
 /* ------------------------------------------------------------------ hero */
 
+/* The copy sits low in the frame rather than centred, matching the deck —
+   it clears the subject's face and lets the backlight carry the top half. */
 .hero {
 	display: grid;
-	align-items: center;
+	align-items: end;
+	padding-bottom: 21vh;
 	background: #050505;
 	color: #f2f2f2;
 	overflow: hidden;
@@ -314,27 +317,26 @@ figure {
 	object-position: 62% center;
 }
 
+/* No right padding: with border-box it would eat into max-width and force
+   the deck's single-line paragraphs to wrap. 15px (not --fs-body's 16px) is
+   what the deck sets here, and it's what keeps the longest line unwrapped. */
 .hero__copy {
 	position: relative;
 	z-index: 2;
 	grid-column: 1;
 	margin-left: clamp(20px, 47.7vw, 917px);
 	max-width: min(440px, 78vw);
-	padding: 0 var(--gutter) 0 0;
 	text-transform: uppercase;
-	font-size: var(--fs-body);
-	line-height: 1.5;
+	font-size: var(--fs-chrome);
+	line-height: calc(16 / 15);
 	color: #d8d8d8;
 	text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
 }
 
+/* Gaps are set from the blank-line count in the deck's own text layer, one
+   blank line being one 16px line box, so the uneven rhythm is preserved. */
 .hero__copy p {
-	margin: 0 0 2.6em;
-}
-
-.hero__copy p:last-child {
-	margin-bottom: 0;
-	line-height: 1.28;
+	margin: 0 0 calc(var(--blank, 0) * (16em / 15));
 }
 
 .hero__scroll {
@@ -570,9 +572,12 @@ figure {
 		display: none;
 	}
 
+	/* .hero__copy supplies its own bottom padding here, so drop the desktop
+	   offset rather than stacking the two. */
 	.hero {
 		min-height: 100svh;
 		align-items: end;
+		padding-bottom: 0;
 	}
 
 	.hero__copy {
