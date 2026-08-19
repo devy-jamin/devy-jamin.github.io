@@ -1,0 +1,619 @@
+@font-face {
+	font-family: 'Space Mono';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url('fonts/space-mono-400-latin.woff2') format('woff2');
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+		U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193,
+		U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+	font-family: 'Space Mono';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url('fonts/space-mono-400-latin-ext.woff2') format('woff2');
+	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+		U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+		U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+	font-family: 'Space Mono';
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url('fonts/space-mono-700-latin.woff2') format('woff2');
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+		U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193,
+		U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+	--bg: #e5e5e5;
+	--ink: #1d1d1d;
+	--body: #222;
+	--muted: #9f9f9f;
+	--rule: #cfcfcf;
+
+	/* The deck is drawn at 1920x1080; these keep its proportions as the
+	   viewport changes, then stop scaling at the extremes. */
+	--gutter: clamp(20px, 6.51vw, 125px);
+	--col: clamp(260px, 25vw, 480px);
+	--fs-chrome: clamp(11px, 0.78vw, 15px);
+	--fs-body: clamp(13px, 0.833vw, 16px);
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--body);
+	font-family: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: var(--fs-body);
+	line-height: 1.125;
+	-webkit-font-smoothing: antialiased;
+}
+
+a {
+	color: inherit;
+}
+
+img {
+	max-width: 100%;
+	display: block;
+}
+
+/* A figure's default 1em block margin would push every snap stop out of
+   alignment with the viewport. */
+figure {
+	margin: 0;
+}
+
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* ---------------------------------------------------------------- chrome */
+
+.chrome {
+	position: fixed;
+	inset: 0 0 auto 0;
+	z-index: 60;
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	padding: clamp(18px, 2.6vh, 28px) var(--gutter);
+	font-size: var(--fs-chrome);
+	line-height: 1.07;
+	text-transform: uppercase;
+	color: var(--ink);
+	pointer-events: none;
+	mix-blend-mode: difference;
+	filter: invert(1);
+}
+
+/* mix-blend-mode + invert keeps the chrome legible over both the dark hero
+   photograph and the light project slides without scripting a colour swap. */
+@supports not (mix-blend-mode: difference) {
+	.chrome {
+		mix-blend-mode: normal;
+		filter: none;
+	}
+}
+
+.chrome a,
+.chrome button {
+	pointer-events: auto;
+}
+
+.chrome__id {
+	display: flex;
+	gap: clamp(24px, 10.4vw, 201px);
+}
+
+.chrome__id p {
+	margin: 0;
+	white-space: nowrap;
+}
+
+.chrome__right {
+	display: flex;
+	align-items: flex-start;
+	gap: clamp(16px, 2.2vw, 42px);
+}
+
+.menu-toggle {
+	appearance: none;
+	background: none;
+	border: 0;
+	padding: 6px 0 0;
+	margin: 0;
+	cursor: pointer;
+	display: grid;
+	gap: 6px;
+	width: 34px;
+}
+
+.menu-toggle span {
+	display: block;
+	height: 2px;
+	background: currentColor;
+	transition: transform 0.28s ease, opacity 0.28s ease;
+}
+
+.footer-mail {
+	position: fixed;
+	left: var(--gutter);
+	bottom: clamp(20px, 6.9vh, 75px);
+	z-index: 60;
+	font-size: var(--fs-chrome);
+	color: var(--ink);
+	text-decoration: none;
+	mix-blend-mode: difference;
+	filter: invert(1);
+}
+
+.footer-mail:hover {
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------ menu */
+
+.menu {
+	position: fixed;
+	inset: 0;
+	z-index: 70;
+	display: grid;
+	place-items: start end;
+	padding: clamp(64px, 9vh, 96px) var(--gutter);
+	background: rgba(20, 20, 20, 0.42);
+	backdrop-filter: blur(2px);
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.32s ease, visibility 0.32s;
+}
+
+.menu[data-open='true'] {
+	opacity: 1;
+	visibility: visible;
+}
+
+.menu__panel {
+	position: relative;
+	width: min(444px, 92vw);
+	background: #efefef;
+	border-radius: 14px;
+	padding: 32px 30px 36px;
+	transform: translateY(-8px);
+	transition: transform 0.32s ease;
+	max-height: 82vh;
+	overflow-y: auto;
+}
+
+.menu[data-open='true'] .menu__panel {
+	transform: none;
+}
+
+.menu__close {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	appearance: none;
+	background: none;
+	border: 0;
+	padding: 6px;
+	cursor: pointer;
+	color: var(--ink);
+	line-height: 0;
+}
+
+.menu__title {
+	margin: 0 0 30px;
+	font-size: var(--fs-chrome);
+	font-weight: 400;
+	text-transform: uppercase;
+	color: var(--ink);
+}
+
+.menu__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 32px;
+}
+
+.menu__link {
+	display: grid;
+	grid-template-columns: 50px 1fr;
+	align-items: center;
+	gap: 18px;
+	text-decoration: none;
+	color: var(--ink);
+	text-transform: uppercase;
+	font-size: var(--fs-chrome);
+	line-height: 1.28;
+	padding: 6px 0;
+	border-radius: 6px;
+	transition: opacity 0.2s ease;
+}
+
+.menu__link:hover {
+	opacity: 0.55;
+}
+
+.menu__logo {
+	display: grid;
+	place-items: center;
+	width: 50px;
+}
+
+.menu__logo img {
+	width: 100%;
+	height: auto;
+	object-fit: contain;
+}
+
+.menu__logo--empty {
+	height: 0;
+}
+
+/* ------------------------------------------------------------ scroll deck */
+
+.deck {
+	height: 100vh;
+	height: 100dvh;
+	overflow-y: scroll;
+	scroll-snap-type: y mandatory;
+	scroll-behavior: smooth;
+}
+
+.panel {
+	min-height: 100vh;
+	min-height: 100dvh;
+	scroll-snap-align: start;
+	scroll-snap-stop: always;
+	position: relative;
+}
+
+/* ------------------------------------------------------------------ hero */
+
+.hero {
+	display: grid;
+	align-items: center;
+	background: #050505;
+	color: #f2f2f2;
+	overflow: hidden;
+}
+
+.hero__photo {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: 62% center;
+}
+
+.hero__copy {
+	position: relative;
+	z-index: 2;
+	grid-column: 1;
+	margin-left: clamp(20px, 47.7vw, 917px);
+	max-width: min(440px, 78vw);
+	padding: 0 var(--gutter) 0 0;
+	text-transform: uppercase;
+	font-size: var(--fs-body);
+	line-height: 1.5;
+	color: #d8d8d8;
+	text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
+}
+
+.hero__copy p {
+	margin: 0 0 2.6em;
+}
+
+.hero__copy p:last-child {
+	margin-bottom: 0;
+	line-height: 1.28;
+}
+
+.hero__scroll {
+	position: absolute;
+	left: 50%;
+	bottom: clamp(24px, 5vh, 52px);
+	transform: translateX(-50%);
+	z-index: 3;
+	font-size: var(--fs-chrome);
+	text-transform: uppercase;
+	color: #8d8d8d;
+	text-decoration: none;
+	display: grid;
+	justify-items: center;
+	gap: 8px;
+}
+
+.hero__scroll span {
+	animation: nudge 2.2s ease-in-out infinite;
+}
+
+@keyframes nudge {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(4px); }
+}
+
+/* --------------------------------------------------------------- project */
+
+/* Each project pins its description while its visuals advance past, which is
+   how the deck behaves: the copy is identical across a project's slides and
+   only the artwork changes. */
+.project {
+	position: relative;
+	display: grid;
+	grid-template-columns: var(--col) 1fr;
+	column-gap: clamp(24px, 5vw, 90px);
+	padding-left: var(--gutter);
+	padding-right: var(--gutter);
+	align-items: start;
+}
+
+.project__info {
+	position: sticky;
+	top: 0;
+	height: 100vh;
+	height: 100dvh;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding: clamp(96px, 12vh, 130px) 0 clamp(72px, 10vh, 100px);
+	z-index: 2;
+}
+
+/* Fixed width (not the fluid clamp() used elsewhere) so every brand mark is
+   pixel-identical regardless of its own aspect ratio; height follows from
+   each logo's own proportions. */
+.project__logo {
+	width: 70px;
+	margin-bottom: clamp(20px, 3.4vh, 36px);
+}
+
+.project__logo img,
+.project__logo svg {
+	width: 100%;
+	height: auto;
+	object-fit: contain;
+}
+
+/* The Hanna Andersson script mark carries more internal whitespace than the
+   other three logos, so matching its bounding box reads visually smaller.
+   Size it 10% larger to match their optical weight. */
+.project__logo--hanna {
+	width: 77px;
+}
+
+.project__title {
+	margin: 0 0 clamp(20px, 4vh, 42px);
+	font-size: var(--fs-body);
+	font-weight: 400;
+	line-height: 1.125;
+	color: var(--body);
+}
+
+.project__desc {
+	margin: 0 0 clamp(20px, 4vh, 42px);
+	font-size: var(--fs-body);
+	line-height: 1.125;
+	color: var(--body);
+}
+
+.project__meta {
+	margin: 0 0 clamp(20px, 4vh, 42px);
+	font-size: var(--fs-body);
+	line-height: 1.125;
+	color: var(--body);
+}
+
+.project__meta dt {
+	display: inline;
+	font-weight: 400;
+}
+
+.project__meta dd {
+	display: inline;
+	margin: 0;
+}
+
+.project__meta div + div {
+	margin-top: 0.1em;
+}
+
+.project__meta div {
+	display: block;
+}
+
+.project__cta {
+	font-size: var(--fs-chrome);
+	text-transform: uppercase;
+	color: var(--body);
+	text-decoration: none;
+	align-self: start;
+}
+
+.project__cta:hover {
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+.project__visuals {
+	display: grid;
+}
+
+.project__visual {
+	min-height: 100vh;
+	min-height: 100dvh;
+	scroll-snap-align: start;
+	scroll-snap-stop: always;
+	display: grid;
+	place-items: center;
+	padding: clamp(90px, 11vh, 120px) 0 clamp(60px, 8vh, 90px);
+}
+
+.project__visual img {
+	max-height: 100%;
+	width: auto;
+	max-width: 100%;
+	object-fit: contain;
+}
+
+/* ---------------------------------------------------------------- outro */
+
+.outro {
+	display: grid;
+	place-items: center;
+	text-align: center;
+	padding: var(--gutter);
+}
+
+.outro__inner {
+	display: grid;
+	gap: 22px;
+	justify-items: center;
+	text-transform: uppercase;
+	font-size: var(--fs-body);
+}
+
+.outro a {
+	color: var(--body);
+	text-decoration: none;
+	border-bottom: 1px solid currentColor;
+	padding-bottom: 3px;
+}
+
+.outro a:hover {
+	opacity: 0.55;
+}
+
+/* ---------------------------------------------------------- progress rail */
+
+.rail {
+	position: fixed;
+	right: clamp(10px, 1.2vw, 22px);
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 55;
+	display: grid;
+	gap: 9px;
+	mix-blend-mode: difference;
+	filter: invert(1);
+}
+
+.rail a {
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	border: 1px solid var(--ink);
+	transition: background 0.25s ease;
+}
+
+.rail a[aria-current='true'] {
+	background: var(--ink);
+}
+
+/* --------------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+	:root {
+		--fs-chrome: 11px;
+		--fs-body: 14px;
+	}
+
+	.deck {
+		scroll-snap-type: none;
+		height: auto;
+		overflow: visible;
+	}
+
+	.panel,
+	.project__visual {
+		min-height: 0;
+	}
+
+	.chrome__id {
+		gap: 18px;
+	}
+
+	.chrome__id p:nth-child(3) {
+		display: none;
+	}
+
+	.rail,
+	.hero__scroll {
+		display: none;
+	}
+
+	.hero {
+		min-height: 100svh;
+		align-items: end;
+	}
+
+	.hero__copy {
+		margin-left: 0;
+		padding: 0 var(--gutter) clamp(64px, 14vh, 120px);
+		max-width: none;
+	}
+
+	.project {
+		grid-template-columns: 1fr;
+		padding-top: clamp(72px, 14vh, 110px);
+		padding-bottom: 48px;
+		row-gap: 32px;
+	}
+
+	.project__info {
+		position: static;
+		height: auto;
+		padding: 0;
+	}
+
+	.project__visual {
+		padding: 0 0 28px;
+	}
+
+	.project__visuals {
+		gap: 8px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html,
+	.deck {
+		scroll-behavior: auto;
+	}
+
+	.hero__scroll span {
+		animation: none;
+	}
+
+	* {
+		transition-duration: 0.01ms !important;
+	}
+}
