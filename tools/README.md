@@ -58,6 +58,27 @@ They live encrypted, so they take extra steps:
 4. `python3 tools/restore_media.py` — puts back the images lock.py deleted
 5. `python3 lock.py` — re-encrypt and publish
 
+## Getting the plaintext images back
+
+`lock.py` deletes the plaintext it encrypts. `restore_media.py` can re-download
+those images — but only ones that came from WordPress. Anything added locally
+(a screenshot, an export) exists nowhere else once lock.py has run.
+
+`unlock_media.py` recovers all of them from the encrypted copies:
+
+```
+python3 tools/unlock_media.py                 # restore only what's missing
+python3 tools/unlock_media.py --all           # overwrite everything
+python3 tools/unlock_media.py --out ~/backup  # write to a backup folder instead
+```
+
+It asks for the password, then writes each image back to the path the pages
+reference. Use this instead of `restore_media.py` once Bluehost is cancelled —
+after that WordPress is gone and this is the only way back.
+
+**Keep a copy of anything you add locally.** If the password is lost, the
+encrypted assets cannot be recovered by any means.
+
 ## Checking the images
 
 ```
