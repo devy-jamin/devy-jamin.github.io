@@ -4741,75 +4741,93 @@ figure.dj-locked-card > a {
 	justify-content: center;
 	/* matches the 20px radius the card images are given inline */
 	border-radius: 20px;
-	background: rgba(18, 18, 18, 0.72);
-	backdrop-filter: blur(3px);
-	-webkit-backdrop-filter: blur(3px);
+	background: rgba(10, 10, 10, 0.82);
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
 	color: #fff;
 	text-align: center;
 	padding: 24px;
 	box-sizing: border-box;
 }
 .dj-lock-inner {
-	max-width: 22rem;
-	width: 100%;
+	width: min(30rem, 100%);
 }
 .dj-lock-icon {
-	width: 26px;
-	height: 26px;
-	margin: 0 auto 10px;
+	width: 24px;
+	height: 24px;
+	margin: 0 auto 12px;
 	display: block;
-	opacity: 0.9;
+	opacity: 0.95;
 }
 .dj-lock-label {
-	margin: 0 0 14px;
+	margin: 0 0 18px;
 	font-size: 13px;
-	letter-spacing: 0.12em;
+	letter-spacing: 0.18em;
 	text-transform: uppercase;
-	opacity: 0.85;
+	opacity: 0.9;
 }
 .dj-lock-form {
 	display: flex;
-	gap: 8px;
+	gap: 14px;
+	align-items: center;
 	justify-content: center;
 }
-.dj-lock-input {
-	flex: 1 1 12rem;
+/* the theme styles inputs by attribute selector, which outranks a bare
+   class - match its specificity so the radius and colours stick */
+.dj-lock-form input.dj-lock-input {
+	flex: 1 1 22rem;
 	min-width: 0;
-	padding: 10px 12px;
+	height: 56px;
+	padding: 0 20px;
 	font: inherit;
-	font-size: 15px;
+	font-size: 16px;
 	color: #fff;
-	background: rgba(255, 255, 255, 0.12);
-	border: 1px solid rgba(255, 255, 255, 0.35);
-	border-radius: 6px;
+	background: transparent;
+	border: 1px solid rgba(255, 255, 255, 0.45);
+	border-radius: 10px;
+	box-sizing: border-box;
 }
-.dj-lock-input::placeholder {
-	color: rgba(255, 255, 255, 0.6);
+.dj-lock-form input.dj-lock-input::placeholder {
+	color: rgba(255, 255, 255, 0.55);
 }
-.dj-lock-input:focus {
+.dj-lock-form input.dj-lock-input:focus {
 	outline: none;
 	border-color: #fff;
-	background: rgba(255, 255, 255, 0.18);
 }
+/* circular arrow button, matched to the input's height */
 .dj-lock-btn {
-	padding: 10px 20px;
-	font: inherit;
-	font-size: 15px;
-	color: #121212;
+	flex: none;
+	width: 56px;
+	height: 56px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	color: #111;
 	background: #fff;
 	border: 0;
-	border-radius: 6px;
+	border-radius: 50%;
 	cursor: pointer;
+	transition: background-color 0.15s ease;
+}
+.dj-lock-btn svg {
+	width: 22px;
+	height: 22px;
+	display: block;
 }
 .dj-lock-btn:hover:not(:disabled) {
-	background: #e6e6e6;
+	background: #e2e2e2;
+}
+.dj-lock-btn:focus-visible {
+	outline: 2px solid #fff;
+	outline-offset: 3px;
 }
 .dj-lock-btn:disabled {
-	opacity: 0.6;
+	opacity: 0.55;
 	cursor: default;
 }
 .dj-lock-msg {
-	margin: 12px 0 0;
+	margin: 14px 0 0;
 	font-size: 13px;
 	min-height: 1.2em;
 	opacity: 0.9;
@@ -4820,14 +4838,23 @@ figure.dj-locked-card > a {
 }
 
 @media only screen and (max-width: 560px) {
-	.dj-lock-form {
-		flex-wrap: wrap;
-	}
-	.dj-lock-input,
-	.dj-lock-btn {
-		flex: 1 1 100%;
+	.dj-lock-overlay {
+		padding: 16px;
 	}
 	.dj-lock-label {
-		font-size: 12px;
+		font-size: 11px;
+		margin-bottom: 14px;
+	}
+	.dj-lock-form {
+		gap: 10px;
+	}
+	.dj-lock-form input.dj-lock-input {
+		height: 48px;
+		font-size: 15px;
+		padding: 0 16px;
+	}
+	.dj-lock-btn {
+		width: 48px;
+		height: 48px;
 	}
 }

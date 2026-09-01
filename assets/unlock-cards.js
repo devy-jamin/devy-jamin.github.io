@@ -65,7 +65,12 @@
 				'<form class="dj-lock-form">' +
 					'<input type="password" class="dj-lock-input" placeholder="Password" ' +
 						'aria-label="Password" autocomplete="current-password" required />' +
-					'<button type="submit" class="dj-lock-btn">View</button>' +
+					'<button type="submit" class="dj-lock-btn" aria-label="View case study">' +
+						'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+							'<path d="M5 12h13M12 5l7 7-7 7" fill="none" stroke="currentColor" ' +
+								'stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+						'</svg>' +
+					'</button>' +
 				'</form>' +
 				'<p class="dj-lock-msg" role="status" aria-live="polite"></p>' +
 			'</div>';
