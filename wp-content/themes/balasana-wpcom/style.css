@@ -4618,11 +4618,11 @@ body.admin-bar .widget_eu_cookie_law_widget.widget.top {
 	}
 }
 
-/* Divider between the Outcome and the process sections that follow it.
-   Spans the full viewport with a 40px gap each side, so it reads as a chapter
-   break rather than another content block. Spacing uses padding, not margin:
-   the theme zeroes the margins of a column's first and last child. */
-.entry-content > .dj-divider-wrap.alignfull {
+/* Full-bleed banner separating the Outcome from the process sections that
+   follow. Runs edge to edge with generous space above and below, so it reads
+   as a chapter break. Spacing uses padding, not margin: the theme zeroes the
+   margins of a column's first and last child. */
+.entry-content > .dj-banner.alignfull {
 	position: relative;
 	left: 50%;
 	transform: translateX(-50%);
@@ -4630,19 +4630,19 @@ body.admin-bar .widget_eu_cookie_law_widget.widget.top {
 	max-width: 100vw;
 	/* the theme's own .alignfull sets -16px side margins; cancel them */
 	margin-inline: 0;
-	padding: 5rem 40px;
+	padding: 5rem 0;
 	box-sizing: border-box;
 }
-.dj-divider {
-	border: 0;
-	border-top: 1px solid #c8c8c8;
-	height: 0;
+.dj-banner img {
+	display: block;
+	width: 100%;
+	height: auto;
 	margin: 0;
-	padding: 0;
+	max-width: none;
 }
 
 @media only screen and (max-width: 560px) {
-	.entry-content > .dj-divider-wrap.alignfull {
-		padding: 3rem 20px;
+	.entry-content > .dj-banner.alignfull {
+		padding: 3rem 0;
 	}
 }
