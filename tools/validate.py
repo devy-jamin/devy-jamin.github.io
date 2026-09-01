@@ -13,15 +13,32 @@ SIZED = re.compile(r"-\d+x\d+(\.\w+)$")
 _w = {}
 
 
+def exists(rel):
+    return os.path.isfile(os.path.join(ROOT, rel.lstrip("/")))
+
+
 def width(rel):
+    """Pixel width, or None if the format isn't one we can measure.
+    None does NOT mean missing - use exists() for that."""
     if rel in _w:
         return _w[rel]
     v = None
     try:
         with open(os.path.join(ROOT, rel.lstrip("/")), "rb") as f:
-            h = f.read(33)
+            h = f.read(8192)
         if h[:8] == b"\x89PNG\r\n\x1a\n":
             v = struct.unpack(">II", h[16:24])[0]
+        elif h[:2] == b"\xff\xd8":                      # jpeg
+            i = 2
+            while i < len(h) - 9:
+                if h[i] != 0xFF:
+                    i += 1
+                    continue
+                m = h[i + 1]
+                if m in (0xC0, 0xC1, 0xC2, 0xC3):
+                    v = struct.unpack(">H", h[i + 7:i + 9])[0]
+                    break
+                i += 2 + struct.unpack(">H", h[i + 2:i + 4])[0]
     except Exception:
         v = None
     _w[rel] = v
@@ -46,7 +63,7 @@ for dp, dn, fs in os.walk(ROOT):
                 continue
             imgs += 1
             src = sm.group(1)
-            if width(src) is None and published:
+            if published and not exists(src):
                 problems["missing"].append((page, src))
             want, urls = base_of(src), []
             ss = re.search(r'srcset="([^"]*)"', tag)
@@ -61,11 +78,12 @@ for dp, dn, fs in os.walk(ROOT):
                 if u in urls:
                     problems["dup"].append((page, u))
                 urls.append(u)
+                if published and not exists(u):
+                    problems["missing"].append((page, u))
+                    continue
                 aw = width(u)
                 if aw is None:
-                    if published:
-                        problems["missing"].append((page, u))
-                    continue
+                    continue          # measurable formats only (png/jpeg)
                 if base_of(u) != want:
                     problems["foreign"].append((page, want.split("/")[-1], u.split("/")[-1]))
                 if len(parts) > 1 and parts[1].endswith("w"):
