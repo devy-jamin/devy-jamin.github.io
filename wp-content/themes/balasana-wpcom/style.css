@@ -4731,9 +4731,15 @@ figure.dj-locked-card {
 }
 figure.dj-locked-card > a {
 	display: block;
-	cursor: default;
+	cursor: pointer;
 }
+/* Hidden until the card is clicked, so the artwork reads normally at rest.
+   visibility (not display) keeps it out of the tab order while closed but
+   still lets the fade run. */
 .dj-lock-overlay {
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.18s ease, visibility 0.18s;
 	position: absolute;
 	inset: 0;
 	display: flex;
@@ -4751,6 +4757,10 @@ figure.dj-locked-card > a {
 }
 .dj-lock-inner {
 	width: min(23rem, 100%);
+}
+figure.dj-locked-card.dj-open .dj-lock-overlay {
+	opacity: 1;
+	visibility: visible;
 }
 .dj-lock-icon {
 	width: 24px;

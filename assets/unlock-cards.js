@@ -81,14 +81,41 @@
 		var btn = overlay.querySelector('.dj-lock-btn');
 		var msg = overlay.querySelector('.dj-lock-msg');
 
-		// the image link shouldn't navigate to a page that would just ask again
+		// The form is revealed on click rather than sitting on the card, so the
+		// artwork reads normally until someone actually wants in.
+		function open() {
+			figure.classList.add('dj-open');
+			// the overlay is visibility:hidden until the class lands, and a
+			// hidden element can't take focus - wait for it to be painted
+			requestAnimationFrame(function () {
+				requestAnimationFrame(function () { input.focus(); });
+			});
+		}
+		function close() {
+			figure.classList.remove('dj-open');
+			msg.textContent = '';
+			msg.className = 'dj-lock-msg';
+			input.value = '';
+		}
+
 		var link = figure.querySelector('a[href="' + path + '"]');
 		if (link) {
 			link.addEventListener('click', function (e) {
-				e.preventDefault();
-				input.focus();
+				e.preventDefault();          // don't go to a page that would ask again
+				open();
 			});
 		}
+
+		// clicking anywhere outside this card closes it again
+		document.addEventListener('click', function (e) {
+			if (figure.classList.contains('dj-open') && !figure.contains(e.target)) close();
+		});
+		document.addEventListener('keydown', function (e) {
+			if (e.key === 'Escape' && figure.classList.contains('dj-open')) {
+				close();
+				if (link) link.focus();
+			}
+		});
 
 		form.addEventListener('submit', async function (e) {
 			e.preventDefault();
