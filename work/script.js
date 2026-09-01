@@ -88,10 +88,29 @@
 
 	/* ------------------------------------------------- progress rail spy */
 
+	/* Direction of travel, so the rail's pill can expand the way the reader is
+	   moving. Only one of the two scrollers is ever active (the deck above
+	   900px, the document below), so summing them reads whichever applies. */
+	var scrollDir = 'down';
+	var lastScrollPos = 0;
+
+	function trackDir() {
+		var pos = (deck ? deck.scrollTop : 0) + (window.scrollY || 0);
+		if (pos > lastScrollPos) scrollDir = 'down';
+		else if (pos < lastScrollPos) scrollDir = 'up';
+		lastScrollPos = pos;
+	}
+
+	if (deck) deck.addEventListener('scroll', trackDir, { passive: true });
+	window.addEventListener('scroll', trackDir, { passive: true });
+
 	var rail = document.querySelector('.rail');
 	var stops = [].slice.call(document.querySelectorAll('[data-stop]'));
 
 	if (rail && stops.length && 'IntersectionObserver' in window) {
+		/* Idempotent: if this ever runs twice the dots are rebuilt rather than
+		   appended, so the rail cannot end up doubled. */
+		rail.textContent = '';
 		var dots = {};
 		stops.forEach(function (stop) {
 			var id = stop.id;
@@ -122,12 +141,228 @@
 							dots[k].setAttribute('aria-current', 'false');
 						});
 						dot.setAttribute('aria-current', 'true');
+						/* Read the direction once, at activation. Tracking it
+						   continuously would re-anchor the pill mid-slide the
+						   moment the reader reversed, making it jump. */
+						dot.setAttribute('data-grow', scrollDir);
 					}
 				});
 			},
 			{ root: deck, threshold: 0.5 }
 		);
 		stops.forEach(function (stop) { observer.observe(stop); });
+	}
+
+	/* ----------------------------------------------------- slide reveal */
+
+	/* Snapping straight to a finished frame reads as abrupt, so each slide's
+	   content eases in as it arrives. The hero and the logo strip are left
+	   out: those are already driven continuously by the crossfade below.
+	   Direct children only — a device nested inside a composite reveals with
+	   the composite, and the reveal's `transform: none` would otherwise wipe
+	   out the transform positioning it on the base image. */
+	var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	var revealTargets = [].slice.call(
+		document.querySelectorAll('.project__info, .project__visual > img, .project__visual > .device, .project__visual > .composite, .project__visual > .stage, .outro__inner')
+	);
+
+	if (revealTargets.length && 'IntersectionObserver' in window && !reduceMotion) {
+		document.documentElement.classList.add('js-reveal');
+		revealTargets.forEach(function (el) { el.classList.add('reveal'); });
+
+		/* Viewport-rooted deliberately: the deck fills the viewport when it is
+		   the scroller, so this works there and in normal document flow below
+		   900px without swapping roots on resize. */
+		var revealObserver = new IntersectionObserver(
+			function (entries) {
+				entries.forEach(function (entry) {
+					if (!entry.isIntersecting) return;
+					entry.target.classList.add('is-in');
+					revealObserver.unobserve(entry.target);
+				});
+			},
+			{ threshold: 0.15, rootMargin: '0px 0px -8% 0px' }
+		);
+		revealTargets.forEach(function (el) { revealObserver.observe(el); });
+	}
+
+	/* --------------------------------------------------- device playback */
+
+	/* Autoplaying every clip at once would keep several decoders alive for
+	   slides nobody is looking at, which costs battery on phones. Each one is
+	   loaded and played only while it is on screen, and paused when it leaves.
+	   Under reduced motion nothing plays and the poster frame stands in. */
+	/* Qualified to video: the two-up stage puts stills in .device__screen too,
+	   and play() on an <img> would throw and take the callback down with it. */
+	var screens = [].slice.call(document.querySelectorAll('video.device__screen, video.composite__overlay'));
+
+	if (screens.length && 'IntersectionObserver' in window && !reduceMotion) {
+		var playObserver = new IntersectionObserver(
+			function (entries) {
+				entries.forEach(function (entry) {
+					var v = entry.target;
+					if (entry.isIntersecting) {
+						/* preload is "none" in the markup, so the source is
+						   only fetched once a slide is actually approached. */
+						if (v.preload !== 'auto') v.preload = 'auto';
+						var p = v.play();
+						if (p && p.catch) p.catch(function () {});
+					} else if (!v.paused) {
+						v.pause();
+					}
+				});
+			},
+			{ threshold: 0.25 }
+		);
+		screens.forEach(function (v) { playObserver.observe(v); });
+	}
+
+	/* Paired stills on the two-up stage dissolve between each other on a loop.
+	   Same treatment as the clips above — it runs only while the slide is on
+	   screen, and not at all under reduced motion. Kept observed rather than
+	   unobserved on first sight, so leaving the slide stops the animation.
+
+	   The stage is watched, not the two frames inside it. Observing each frame
+	   started them up to 80ms apart, because a taller frame crosses the
+	   threshold before a shorter one, and re-entry would restart one of them
+	   alone. One element means one start, so the pair cannot drift. */
+	var dissolveGroups = [].slice.call(document.querySelectorAll('.stage'));
+
+	if (dissolveGroups.length && 'IntersectionObserver' in window && !reduceMotion) {
+		var dissolveObserver = new IntersectionObserver(
+			function (entries) {
+				entries.forEach(function (entry) {
+					entry.target.classList.toggle('is-playing', entry.isIntersecting);
+				});
+			},
+			{ threshold: 0.25 }
+		);
+		dissolveGroups.forEach(function (el) { dissolveObserver.observe(el); });
+	}
+
+	/* ------------------------------------------- hero copy / cue alignment */
+
+	/* The hero copy is left-aligned to the scroll cue. The cue is centred in
+	   the viewport, so its left edge is 50% minus half its own width, and
+	   that width moves with the clamped chrome font size. Measuring keeps the
+	   two flush at every viewport instead of approximating it in CSS. */
+	var cueEl = document.querySelector('.hero__scroll');
+	var copyEl = document.querySelector('.hero__copy');
+
+	function alignHeroCopy() {
+		if (!cueEl || !copyEl) return;
+		/* Below 900px the copy is full-width and the cue is hidden, so leave
+		   the stylesheet's own rule to it. */
+		if (window.matchMedia('(max-width: 900px)').matches) {
+			document.documentElement.style.removeProperty('--hero-copy-left');
+			return;
+		}
+		var r = cueEl.getBoundingClientRect();
+		if (!r.width) return;
+		document.documentElement.style.setProperty('--hero-copy-left', Math.round(r.left) + 'px');
+	}
+
+	alignHeroCopy();
+	window.addEventListener('resize', alignHeroCopy);
+	/* Re-measure once the webfont lands: the cue's width changes with it. */
+	if (document.fonts && document.fonts.ready) document.fonts.ready.then(alignHeroCopy);
+
+	/* ------------------------------------------- hero -> clients crossfade */
+
+	/* Both slides are essentially black, so a hard snap between them reads as
+	   a jump. Tying the hero photograph's fade-out and the logo strip's
+	   fade-in to scroll position turns it into a dissolve that tracks the
+	   scroll rather than running on a fixed timer. */
+	var clientsSection = document.getElementById('clients');
+	var heroPhoto = document.querySelector('.hero__photo');
+	var heroCopy = document.querySelector('.hero__copy');
+	var heroScroll = document.querySelector('.hero__scroll');
+	var clientsStrip = document.querySelector('.clients__row');
+
+	if (clientsSection && clientsStrip &&
+		!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		var ticking = false;
+
+		/* Sequential, not a cross-dissolve: slide 1 fades to black first, the
+		   screen holds black briefly, then the logos come up. The hero's own
+		   background is near-black, so once its photo and copy reach 0 the whole
+		   frame is black regardless of how far the next section has scrolled in.
+		   Fractions are of the scroll between the two slides. */
+		/* 1.0, not less: at 0.8 the value clamped for the first 20% of the
+		   scroll either side of slide 2, so leaving it did nothing at all and
+		   then lurched into the fade. Spanning the full scroll means any
+		   movement away from the slide starts changing opacity immediately. */
+		var SEQ_SPAN = 1.0;    /* whole sequence spans the scroll between slides */
+		var OUT_END = 0.42;    /* hero is fully black by here */
+		var IN_START = 0.54;   /* logos start after the black hold */
+		/* Spans the whole exit, so the fade tracks the scroll the entire way
+		   out with no dead stretch. Safe at 1.0 because the strip is released
+		   below (it leaves with its own section, so it stays over that
+		   section's black rather than drifting onto the light slide). */
+		var OUT_SPAN = 1;      /* logos fade out over this much of the exit */
+
+		/* Smootherstep: zero first and second derivative at both ends, so a
+		   fade eases in and out of motion instead of starting or stopping
+		   abruptly. The previous pow(t, 0.7) had near-vertical slope at t=0,
+		   which showed as a visible jump the instant any fade began — most
+		   obvious leaving the logos, where opacity dropped from 1 to 0.79 in
+		   a single scroll step. */
+		function phase(v, from, to) {
+			var t = (v - from) / (to - from);
+			t = t < 0 ? 0 : t > 1 ? 1 : t;
+			return t * t * t * (t * (t * 6 - 15) + 10);
+		}
+
+		function crossfade() {
+			ticking = false;
+			var vh = window.innerHeight;
+			if (!vh) return;
+			/* Viewport-relative, so this works whether the deck is the
+			   scroller (desktop) or the document is (below 900px). */
+			var top = clientsSection.getBoundingClientRect().top;
+			var q = (1 - top / vh) / SEQ_SPAN;
+			q = q < 0 ? 0 : q > 1 ? 1 : q;
+
+			var heroOut = 1 - phase(q, 0, OUT_END);
+			var logosIn = phase(q, IN_START, 1);
+			/* Departure, 0..1 as the section clears the top of the viewport.
+			   Without this the logos rode up off-screen at full opacity. */
+			var exit = -top / vh;
+			exit = exit < 0 ? 0 : exit > 1 ? 1 : exit;
+			var logosOut = phase(exit, 0, OUT_SPAN);
+
+			if (heroPhoto) heroPhoto.style.opacity = heroOut.toFixed(3);
+			if (heroCopy) heroCopy.style.opacity = heroOut.toFixed(3);
+			if (heroScroll) {
+				heroScroll.style.opacity = heroOut.toFixed(3);
+				/* Fixed and full-time in the layout now, so it would keep
+				   catching clicks at the bottom of every later slide once
+				   it has faded out. */
+				heroScroll.style.pointerEvents = heroOut < 0.05 ? 'none' : '';
+			}
+
+			clientsStrip.style.opacity = (logosIn * (1 - logosOut)).toFixed(3);
+			/* Hold the strip at the viewport centre for the whole approach and
+			   departure, so it fades in and back out in place instead of
+			   travelling with its section in either direction. */
+			/* Held still on the way in, so the logos resolve in place rather
+			   than riding up from below. Released on the way out (hold 0 once
+			   top passes 0, continuous across the boundary) so they leave with
+			   their own section and stay over its black throughout. */
+			var hold = top > 0 ? (top > vh ? vh : top) : 0;
+			clientsStrip.style.transform = 'translateY(' + (-hold).toFixed(1) + 'px)';
+		}
+
+		function onScroll() {
+			if (ticking) return;
+			ticking = true;
+			window.requestAnimationFrame(crossfade);
+		}
+
+		if (deck) deck.addEventListener('scroll', onScroll, { passive: true });
+		window.addEventListener('scroll', onScroll, { passive: true });
+		window.addEventListener('resize', onScroll);
+		crossfade();
 	}
 
 	/* --------------------------------------------------- keyboard paging */

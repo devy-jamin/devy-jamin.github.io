@@ -64,6 +64,20 @@ original theme CSS above it.
 That file is loaded by every page — including the encrypted case studies — so
 styling changes made there need no re-lock.
 
+## Pulling changes from the old WordPress site
+
+While Bluehost is still running you can bring WordPress edits across:
+
+```
+python3 tools/check_wp_changes.py .      # what changed?
+python3 tools/sync_page.py ruby-ros      # bring that page across
+python3 tools/validate.py                # check the images
+```
+
+See `tools/README.md` for the full workflow, including the two encrypted pages.
+**Do a final sync before cancelling Bluehost** — after that this repo is the
+only copy.
+
 ## Things worth knowing
 
 - `CNAME` holds the custom domain (`devyjamin.com`). **Don't delete it** — the

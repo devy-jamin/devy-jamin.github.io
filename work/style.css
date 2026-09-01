@@ -1,32 +1,22 @@
 @font-face {
-	font-family: 'Space Mono';
+	font-family: 'Geist';
 	font-style: normal;
 	font-weight: 400;
 	font-display: swap;
-	src: url('fonts/space-mono-400-latin.woff2') format('woff2');
+	src: url('fonts/geist-400-latin.woff2') format('woff2');
 	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
 		U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193,
 		U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-	font-family: 'Space Mono';
+	font-family: 'Geist';
 	font-style: normal;
 	font-weight: 400;
 	font-display: swap;
-	src: url('fonts/space-mono-400-latin-ext.woff2') format('woff2');
+	src: url('fonts/geist-400-latin-ext.woff2') format('woff2');
 	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
 		U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
 		U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-	font-family: 'Space Mono';
-	font-style: normal;
-	font-weight: 700;
-	font-display: swap;
-	src: url('fonts/space-mono-700-latin.woff2') format('woff2');
-	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
-		U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193,
-		U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 :root {
@@ -39,9 +29,28 @@
 	/* The deck is drawn at 1920x1080; these keep its proportions as the
 	   viewport changes, then stop scaling at the extremes. */
 	--gutter: clamp(20px, 6.51vw, 125px);
-	--col: clamp(260px, 25vw, 480px);
-	--fs-chrome: clamp(11px, 0.78vw, 15px);
-	--fs-body: clamp(13px, 0.833vw, 16px);
+	/* 400px at 1920. The visual column sits at 1210px (10% up on its original
+	   1100); the copy holds the rest, taking back the 30px freed by the
+	   narrower right gutter below. Scaled at every viewport, not just the
+	   cap, so the proportions hold as the page resizes. */
+	--col: clamp(220px, 20.83vw, 400px);
+
+	/* The project slides run a tighter gutter on the right than the left:
+	   95px against 125px at 1920. Trimming it there frees width beside the
+	   visual column, which --col above claims for the copy rather than
+	   letting 1fr swallow it. */
+	--gutter-project-right: clamp(16px, 4.95vw, 95px);
+	--fs-chrome: clamp(12px, 0.85vw, 16px);
+	--fs-body: clamp(14px, 0.92vw, 17px);
+
+	/* Header insets, shared with the dropdown so the two stay aligned. */
+	--chrome-pad-y: clamp(18px, 2.6vh, 28px);
+	--chrome-inset-right: max(16px, calc(var(--gutter) * 0.5));
+
+	/* The breathing room above and below a project's visual. Named because
+	   the two-up stage has to size itself against the height these leave. */
+	--visual-pad-top: clamp(90px, 11vh, 120px);
+	--visual-pad-bottom: clamp(60px, 8vh, 90px);
 }
 
 *,
@@ -58,10 +67,42 @@ body {
 	margin: 0;
 	background: var(--bg);
 	color: var(--body);
-	font-family: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-family: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
 	font-size: var(--fs-body);
 	line-height: 1.125;
 	-webkit-font-smoothing: antialiased;
+}
+
+/* Geist is proportional, so the uppercase labels need tracking that
+   Space Mono's fixed advance width supplied on its own. */
+.chrome,
+.menu__title,
+.project__cta,
+.outro__inner {
+	letter-spacing: 0.08em;
+}
+
+/* Sentence case at body size, so it reads as a line of copy rather than a
+   small label; the 0.08em above was there to open up uppercase. */
+.project__cta {
+	text-transform: none;
+	letter-spacing: 0.02em;
+}
+
+/* Measured against the design at 1920: the name is tracked out to 123px,
+   while the hero copy is untracked (425px for its first line, vs 424 in the
+   design) — tracking it pushed that line past the 440px column and wrapped
+   it. The email is lowercase and takes no tracking either. */
+.chrome__email {
+	letter-spacing: normal;
+}
+
+/* Role/Partners reads as a data label rather than prose: small tracked caps
+   in the same family, which is the job the monospace was doing. Keeps the
+   page to a single typeface. */
+.project__meta {
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
 }
 
 a {
@@ -98,9 +139,13 @@ figure {
 	inset: 0 0 auto 0;
 	z-index: 60;
 	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-	padding: clamp(18px, 2.6vh, 28px) var(--gutter);
+	align-items: center;
+	gap: clamp(14px, 2vw, 40px);
+	/* Asymmetric by design: the name holds the full gutter, but the menu icon
+	   sits roughly half that from the edge. Floored so it stays clear of the
+	   screen edge once --gutter bottoms out on small viewports. */
+	padding: var(--chrome-pad-y) var(--chrome-inset-right)
+		var(--chrome-pad-y) var(--gutter);
 	font-size: var(--fs-chrome);
 	line-height: 1.07;
 	text-transform: uppercase;
@@ -124,32 +169,56 @@ figure {
 	pointer-events: auto;
 }
 
-.chrome__id {
-	display: flex;
-	gap: clamp(24px, 10.4vw, 201px);
-}
-
-.chrome__id p {
+.chrome__name {
 	margin: 0;
 	white-space: nowrap;
+	font-size: clamp(13px, 0.95vw, 18px);
+	/* Wordmark tracking. letter-spacing also adds the space *after* the last
+	   glyph, so pull that back to keep the gap to the rule optically even
+	   with the gap the flex row sets everywhere else. */
+	letter-spacing: 0.28em;
+	margin-right: -0.28em;
 }
 
-.chrome__right {
-	display: flex;
-	align-items: flex-start;
-	gap: clamp(16px, 2.2vw, 42px);
+/* The hairline takes the leftover width, so the name stays pinned left and
+   the email/menu stay pinned right at any viewport. */
+.chrome__rule {
+	flex: 1 1 auto;
+	height: 1px;
+	min-width: 20px;
+	background: currentColor;
+	opacity: 0.45;
+}
+
+/* Lowercase, against the uppercase set by .chrome. */
+.chrome__email {
+	text-transform: none;
+	white-space: nowrap;
+	text-decoration: none;
+	position: relative;
+	top: -2px;
+}
+
+.chrome__email:hover {
+	text-decoration: underline;
+	text-underline-offset: 3px;
 }
 
 .menu-toggle {
 	appearance: none;
 	background: none;
 	border: 0;
-	padding: 6px 0 0;
+	padding: 6px 0;
 	margin: 0;
 	cursor: pointer;
 	display: grid;
 	gap: 6px;
 	width: 34px;
+	/* Wider separation from the email than the row's base gap, per the design. */
+	margin-left: clamp(10px, 1.7vw, 32px);
+	/* Matches .chrome__email's nudge so the two stay aligned to each other. */
+	position: relative;
+	top: -2px;
 }
 
 .menu-toggle span {
@@ -157,23 +226,6 @@ figure {
 	height: 2px;
 	background: currentColor;
 	transition: transform 0.28s ease, opacity 0.28s ease;
-}
-
-.footer-mail {
-	position: fixed;
-	left: var(--gutter);
-	bottom: clamp(20px, 6.9vh, 75px);
-	z-index: 60;
-	font-size: var(--fs-chrome);
-	color: var(--ink);
-	text-decoration: none;
-	mix-blend-mode: difference;
-	filter: invert(1);
-}
-
-.footer-mail:hover {
-	text-decoration: underline;
-	text-underline-offset: 3px;
 }
 
 /* ------------------------------------------------------------------ menu */
@@ -184,7 +236,9 @@ figure {
 	z-index: 70;
 	display: grid;
 	place-items: start end;
-	padding: clamp(64px, 9vh, 96px) var(--gutter);
+	/* Level with the header's content so the panel covers the email and menu
+	   icon; .menu already stacks above .chrome. */
+	padding: var(--chrome-pad-y) var(--chrome-inset-right);
 	background: rgba(20, 20, 20, 0.42);
 	backdrop-filter: blur(2px);
 	opacity: 0;
@@ -199,7 +253,11 @@ figure {
 
 .menu__panel {
 	position: relative;
-	width: min(444px, 92vw);
+	/* Bounded by the overlay's own insets; 92vw overflowed them on narrow
+	   screens and pushed the panel out of alignment with the icon. */
+	/* 468 = 30px padding x2 + 42px logo + 18px gap + a 348px text column;
+	   the longest label needs 331px at 18px, which 444 could not hold. */
+	width: min(468px, calc(100vw - var(--chrome-inset-right) * 2));
 	background: #efefef;
 	border-radius: 14px;
 	padding: 32px 30px 36px;
@@ -244,13 +302,12 @@ figure {
 
 .menu__link {
 	display: grid;
-	grid-template-columns: 50px 1fr;
+	grid-template-columns: 42px 1fr;
 	align-items: center;
 	gap: 18px;
 	text-decoration: none;
 	color: var(--ink);
-	text-transform: uppercase;
-	font-size: var(--fs-chrome);
+	font-size: clamp(14px, 0.95vw, 18px);
 	line-height: 1.28;
 	padding: 6px 0;
 	border-radius: 6px;
@@ -264,7 +321,7 @@ figure {
 .menu__logo {
 	display: grid;
 	place-items: center;
-	width: 50px;
+	width: 42px;
 }
 
 .menu__logo img {
@@ -303,32 +360,72 @@ figure {
 	display: grid;
 	align-items: end;
 	padding-bottom: 21vh;
-	background: #050505;
+	/* Matches the clients slide exactly. The photo normally covers this, but
+	   it is exposed during the fade-to-black, where #050505 against the next
+	   slide's #000 showed as a seam along the section boundary. */
+	background: #000;
 	color: #f2f2f2;
-	overflow: hidden;
+	/* No overflow:hidden needed: every child is viewport-fixed now (photo,
+	   copy, scroll cue) and cannot overflow this box. */
 }
 
+/* Fixed rather than absolute so the photograph holds still and simply fades
+   out, instead of travelling up with its section. Counter-translating it
+   would not work: .hero clips its overflow, so a shifted photo gets cut off
+   at the section edge. Fixed positioning escapes that clip entirely.
+   It stays full-viewport at all times and is only ever hidden by opacity,
+   so it must not intercept pointer events. */
 .hero__photo {
-	position: absolute;
+	position: fixed;
 	inset: 0;
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
-	object-position: 62% center;
+	/* Desktop only — see the mobile override below. Panning left of the
+	   original 62% moves the subject right in frame; 32% works out to roughly
+	   a 5% shift on a 16:9 viewport. 0% would be the ceiling (~10.5%), since
+	   the photo only overflows the frame by ~17% of its width. */
+	object-position: 32% center;
+	/* .panel is position:relative, so every section is a positioned box. With
+	   z-index auto they sort in DOM order, which put the later .clients on top
+	   of this fixed photo and chopped it off at the hero's bottom edge — the
+	   black band during the fade. Lifting the photo above the panels lets it
+	   cover the viewport for the whole fade. It is transparent and
+	   click-through once faded, so it never obscures later slides. */
+	z-index: 1;
+	pointer-events: none;
+	/* Opacity is driven per-frame from scroll position, so hint the
+	   compositor and keep CSS transitions out of the way. */
+	will-change: opacity;
 }
 
 /* No right padding: with border-box it would eat into max-width and force
-   the deck's single-line paragraphs to wrap. 15px (not --fs-body's 16px) is
-   what the deck sets here, and it's what keeps the longest line unwrapped. */
+   the deck's single-line paragraphs to wrap. The smaller --fs-chrome (not
+   --fs-body) is what keeps the longest line unwrapped. */
 .hero__copy {
-	position: relative;
+	/* Pinned like .hero__photo so it fades in place rather than drifting up
+	   over the now-stationary photograph. The hero's grid (align-items:end +
+	   21vh bottom padding) is restated here as an explicit offset. Purely
+	   presentational text with no controls, and it spans the viewport for the
+	   whole scroll, so it must not intercept pointer events. */
+	position: fixed;
+	bottom: 21vh;
+	/* Left edge aligned to the scroll cue below it. That cue is centred, so
+	   its left edge depends on its own rendered width, which changes as the
+	   chrome font size clamps — CSS cannot express that, so script.js
+	   measures it into --hero-copy-left. The clamp is the fallback and lands
+	   within a few px of the measured value if script does not run. */
+	left: var(--hero-copy-left, clamp(20px, 48.4vw, 929px));
 	z-index: 2;
-	grid-column: 1;
-	margin-left: clamp(20px, 47.7vw, 917px);
-	max-width: min(440px, 78vw);
+	pointer-events: none;
+	/* Widened from 440px to clear the longest line once tracking is applied:
+	   that line measures 425px untracked and 440px at 0.02em, which the old
+	   column could not hold without wrapping. */
+	max-width: min(480px, 78vw);
 	text-transform: uppercase;
 	font-size: var(--fs-chrome);
 	line-height: calc(16 / 15);
+	letter-spacing: 0.02em;
 	color: #d8d8d8;
 	text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
 }
@@ -339,8 +436,11 @@ figure {
 	margin: 0 0 calc(var(--blank, 0) * (16em / 15));
 }
 
+/* Pinned like the photo and copy. Left absolute it was the only element
+   still travelling during the fade, which read as slide 2 shoving slide 1
+   upward even though everything else was held. */
 .hero__scroll {
-	position: absolute;
+	position: fixed;
 	left: 50%;
 	bottom: clamp(24px, 5vh, 52px);
 	transform: translateX(-50%);
@@ -363,6 +463,472 @@ figure {
 	50% { transform: translateY(4px); }
 }
 
+/* ------------------------------------------------------------- composite */
+
+/* A still export with a video dropped into a placeholder module. The overlay
+   is positioned in percentages of this box, so it stays locked to the module
+   at every size. aspect-ratio gives the box a definite shape, which is what
+   lets those percentages (and the base image's sizing) resolve. */
+.composite {
+	position: relative;
+	height: 100%;
+	max-height: 100%;
+	max-width: 100%;
+	aspect-ratio: 2420 / 1750;
+}
+
+.composite__base {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+/* The module is measured off the export's own pixels: it sits at 5.54%/5.14%
+   and runs 47.23% x 89.54%.
+
+   The element is given the clip's own aspect ratio rather than the module's.
+   The clip is proportionally taller (0.714 against 0.741), so filling the
+   module cropped the top and bottom — which is what pushed the first line of
+   text onto the edge. Matching the clip's ratio means nothing is cut, the
+   video fills its box exactly (so the corner radius lands on the video rather
+   than on empty letterbox), and height alone controls the size.
+
+   83.77% is 5% short of the module's 88.17%, leaving that 5% split evenly
+   above and below. */
+/* The box carries the clip's own aspect ratio, so the whole frame shows and
+   nothing is cropped. Height alone drives the size; width follows from the
+   ratio. Because the module (0.729) and the clip (0.714) are close, an
+   uncropped fit leaves only a narrow margin down each side.
+
+   Sized and placed against the module's measured box in the current export
+   (126, 90, 1163 x 1567 of 2420 x 1750). That box has moved between exports,
+   so re-derive these if it shifts again. Centred on the module's own midline (29.15%),
+   which is not the midline of the image. All four figures are derived from
+   the module's measured box in the current export — re-derive them if a new
+   export moves it. */
+.composite__overlay {
+	position: absolute;
+	/* Sized to 538px wide at 1920 (height follows the ratio), nudged 8px down
+	   and right of centre. Expressed as percentages of the composite so the
+	   offset scales with it rather than drifting at other viewports. */
+	top: 8.08%;
+	left: 29.57%;
+	transform: translateX(-50%);
+	height: 86.22%;
+	width: auto;
+	/* 1044x1464, not the source's 1048x1468: the clip carries a 1px dark edge
+	   on all four sides (215 against an interior of 245), which read as a thin
+	   grey border. It is cropped off at the encode, so the ratio shifts
+	   slightly and this has to follow it. */
+	aspect-ratio: 1044 / 1464;
+	border-radius: clamp(5px, 0.42vw, 9px);
+}
+
+
+/* ---------------------------------------------------------------- device */
+
+/* Bezel and shadow are drawn here rather than baked into the asset, so the
+   frame stays crisp at any resolution and the shadow can follow its rounded
+   silhouette. MP4 carries no alpha channel, so a baked-in frame could only
+   ever get a rectangular box-shadow. Assets are bare screen content. */
+.device {
+	/* ~1% of the device's own width, matching the reference. The previous
+	   0.9vw worked out at ~1.6% and read as a chunky tablet edge. */
+	--bezel: clamp(5px, 0.55vw, 11px);
+	--radius: clamp(14px, 1.56vw, 34px);
+	position: relative;
+	padding: var(--bezel);
+	/* --ink (#1d1d1d) rather than a near-black: #0d0d0d against the #e5e5e5
+	   slide was close to the maximum contrast the page can produce, which made
+	   the frame read harder than the screen inside it. This is the same tone
+	   as the body type, so the bezel sits in the palette rather than beside
+	   it. The gradient adds a soft sheen down the top edge, the way a real
+	   bezel catches light — the stop is deliberately tight so it falls off
+	   within the top bezel and leaves the sides and base flat. */
+	background: linear-gradient(180deg, #2a2a2a 0%, var(--ink) 6%);
+	border-radius: var(--radius);
+	/* Raised from 1180 so it does not cap the now-wider visual column. */
+	max-width: min(100%, 1320px);
+	/* Layered rather than one blur: a tight contact shadow to seat the device,
+	   plus a wide soft one for depth. Alphas are 5% lighter and blur radii 10%
+	   wider than the first pass — softer and less present, same geometry. */
+	box-shadow:
+		0 2px 7px rgba(0, 0, 0, 0.066),
+		0 18px 44px -12px rgba(0, 0, 0, 0.266),
+		0 44px 88px -30px rgba(0, 0, 0, 0.209);
+}
+
+.device__screen {
+	display: block;
+	width: 100%;
+	height: auto;
+	/* Concentric with the bezel, so the corners stay parallel. */
+	border-radius: calc(var(--radius) - var(--bezel));
+	background: #efefef;
+}
+
+/* A framed phone dropped into the clear left band of the Ruby export. The
+   base PNG is 2420x1750 with its content running x 1214-2121 and y 114-1673,
+   so the frame sits in that empty band and is matched to the same vertical span
+   the rest of the composition occupies. Percentages of the composite, so it
+   tracks the image at every viewport — the centre is the band's own centre
+   (25.06%) nudged 20px right at a 1920 viewport, which is 1.65% of the
+   composite. */
+.composite__device {
+	position: absolute;
+	/* Grown 5.6% about its own centre to carry the slide, so it stands a little
+	   proud of the composition's 6.51-95.60% band rather than matching it. */
+	top: 4.03%;
+	left: 26.71%;
+	transform: translateX(-50%);
+	height: 94.05%;
+	/* Width shrink-wraps the screen, which is driven off the height instead. */
+	width: auto;
+}
+
+.composite__device .device__screen {
+	width: auto;
+	height: 100%;
+	/* 718x1570, not the source's 722x1574: this clip carries the same baked 1px
+	   dark edge as the Nike ones, cropped off at the encode. */
+	aspect-ratio: 718 / 1570;
+}
+
+/* Portrait handset. Proportions are taken off the reference frame, which is
+   this same clip in a mockup: a body of 772x1632 around a 717x1567 screen, so
+   the edge is 3.9% of the body width where the landscape frame's is 2.9%. The
+   drop shadow is deliberately the shared one — only the edge and the corners
+   change. */
+.device--phone {
+	/* A percentage, not the vw the landscape frame uses. Padding percentages
+	   resolve against the containing block's width, and this frame's size is
+	   driven by the composite rather than the viewport — a vw edge holds at
+	   1920x1080 but reads at 5.2% of the body on a wide, short window. 1.253%
+	   of the composite works back to 3.9% of the body at any size — re-solved
+	   whenever the frame is resized, since a fixed fraction of the composite
+	   drifts against a body that changed. It does assume a .composite parent,
+	   which is the only place this is used. */
+	--bezel: 1.253%;
+	/* Radii are percentage pairs (horizontal / vertical) rather than a single
+	   length, for the same reason. A pair keeps the corner circular and
+	   proportional at every size, because the body's own aspect barely moves
+	   (0.472 to 0.477 across the range).
+
+	   11.93% of the body width — the hardware's own proportion, and concentric
+	   with the screen's corner inside it (screen radius + bezel). */
+	border-radius: 11.93% / 5.69%;
+	/* The band picks up light down its two straight sides, as a polished edge
+	   does. The vertical sheen's falloff is pulled in to 1.9% so it lands inside
+	   the top bezel here, the same way 6% does on the much taller laptop. */
+	background:
+		linear-gradient(
+			90deg,
+			rgba(255, 255, 255, 0.2) 0%,
+			rgba(255, 255, 255, 0) 4%,
+			rgba(255, 255, 255, 0) 96%,
+			rgba(255, 255, 255, 0.2) 100%
+		),
+		linear-gradient(180deg, #2a2a2a 0%, var(--ink) 1.9%);
+}
+
+/* The clip arrives with its own rounding baked in (51px on a 718px-wide frame,
+   measured off a decoded frame = 7.1%). Clipping to that same radius left the
+   two edges sitting on top of each other, and the corner read soft and slightly
+   muddy where the baked anti-aliasing met the mask. Clipping tighter cuts the
+   baked corner away entirely — a rounded rect of larger radius sits wholly
+   inside one of smaller radius — so the corner is defined by the mask alone and
+   comes out crisp. 8.74% is 30px at a 1920 viewport, comfortably inside 24.4px.
+
+   object-fit, because a video's default `contain` letterboxes it whenever the
+   box and the picture disagree by any fraction, and the placeholder background
+   below shows through the gap. Here they agree to five decimals, but the box's
+   right edge lands on 343.281px and the sliver still rasterised as a near-white
+   hairline against the frame. `cover` removes the gap; the dark placeholder
+   means nothing light can leak even if it were still there. */
+.device--phone .device__screen {
+	border-radius: 8.74% / 4%;
+	object-fit: cover;
+	background: var(--ink);
+}
+
+/* ----------------------------------------------------------- two-up stage */
+
+/* Laptop and phone shown together, the phone overlapping the laptop's lower
+   right. Everything below is a percentage of the stage, and the stage carries
+   the arrangement's own aspect, so the composition holds its proportions at any
+   viewport instead of drifting as the column changes shape.
+
+   The shape is solved, not eyeballed. Read off the reference: the phone's body
+   is 0.804 of the laptop's height, overlaps it by 0.386 of its own width, and
+   drops 0.028 of a laptop height below its base. The handset's bezel is held at
+   3.86% of its own body width, as it is everywhere else, and the laptop's is
+   then matched to it in absolute thickness rather than by ratio — at 0.87% of
+   its own much wider body the landscape edge came out thinner in pixels than
+   the handset's beside it, and read underweight. Matching the two puts the pair
+   at one edge weight, and lands within a fifth of a pixel of the full-width
+   frames on slides 3 and 5.
+
+   Those constants are shared, but the numbers they produce are not: a laptop
+   asset of a different aspect gives a different body width, which moves the
+   phone and the stage's own ratio with it. So each project carries its own
+   solved set below and only the structure is shared. */
+.stage {
+	position: relative;
+	aspect-ratio: var(--ar);
+	/* Width has to be the single driver. Setting height:100% and leaning on
+	   max-width does not work: an explicit height wins over aspect-ratio, so
+	   clamping the width just squashed the box rather than shrinking it. This
+	   asks for the full column but never more than the available height can
+	   carry at this aspect, which is the binding constraint on short windows.
+	   The height comes from the aspect ratio either way. */
+	width: min(100%, calc((100dvh - var(--visual-pad-top) - var(--visual-pad-bottom)) * var(--ar)));
+}
+
+.stage .device {
+	position: absolute;
+	/* The shared frame caps itself at 1320px for the full-width slides. Here the
+	   width is a share of the stage, and that cap would break the arrangement on
+	   a wide viewport. */
+	max-width: none;
+	/* One grid cell holds every screen, so a pair stacks without absolute
+	   positioning — which would have to restate the bezel as an inset, and a
+	   percentage inset resolves against height for top/bottom but width for
+	   left/right, so it could not stay square. */
+	display: grid;
+	grid-template-rows: minmax(0, 1fr);
+	grid-template-columns: minmax(0, 1fr);
+}
+
+.stage .device__screen {
+	grid-area: 1 / 1;
+	width: 100%;
+	height: 100%;
+	/* Each frame's content box is derived from its asset's own aspect, so this
+	   crops nothing. It is here to stop sub-pixel rounding opening a gap at an
+	   edge and showing the placeholder through it. */
+	object-fit: cover;
+	background: var(--ink);
+}
+
+.stage .stage__laptop {
+	top: 0;
+	left: 0;
+	width: var(--lap-w);
+	/* Set by the drop alone, so it is the same for every project. */
+	height: 97.2763%;
+	--bezel: var(--lap-bezel);
+	/* Radii are horizontal/vertical percentage pairs so the corner stays
+	   circular and proportional at every size. The horizontal figure is 2.4752%
+	   of the body width, the ratio the full-width frames on slides 3 and 5 run;
+	   its vertical partner moves with the asset's aspect. */
+	border-radius: var(--lap-r);
+}
+
+.stage .stage__laptop .device__screen {
+	border-radius: var(--lap-screen-r);
+}
+
+.stage .stage__phone {
+	/* Both set by the phone/laptop height ratio and the drop, so they hold for
+	   every project. */
+	top: 21.7899%;
+	height: 78.2101%;
+	left: var(--ph-left);
+	width: var(--ph-w);
+	--bezel: var(--ph-bezel);
+	/* Rounder than the 11.93% the handset runs on slide 7, and deliberately so.
+	   That asset bakes a 7.1% corner into the picture and is masked tighter, so
+	   the mask defines the curve. These arrive on transparency with an 11.57%
+	   corner already rounded off, which cannot be masked back in — the corners
+	   would fill with the bezel colour and the frame would read 28% thicker
+	   there than down its sides. Honouring the asset's own rounding and sitting
+	   the frame concentrically outside it keeps the edge the same weight the
+	   whole way round. */
+	border-radius: var(--ph-r);
+}
+
+.stage .stage__phone .device__screen {
+	border-radius: var(--ph-screen-r);
+}
+
+/* Laptop screen 2048x1300. Ruby's portal and SOREL's editorial clip encode to
+   the same frame, and every handset here is the same 726x1572 export, so the
+   two arrangements solve to one set of numbers. They are shared deliberately
+   rather than duplicated — re-export either laptop asset at a different aspect
+   and it needs splitting back out. */
+.stage--ruby,
+.stage--sorel-editorial {
+	--ar: 1.74713;
+	--lap-w: 86.7560%;
+	--lap-bezel: 0.8326%;
+	--lap-r: 2.4752% / 3.8568%;
+	--lap-screen-r: 1.5451% / 2.4342%;
+	--ph-left: 78.4299%;
+	--ph-w: 21.5701%;
+	--ph-bezel: 0.8326%;
+	--ph-r: 14.537% / 7.0047%;
+	--ph-screen-r: 11.5702% / 5.3435%;
+}
+
+/* Laptop screen 2048x1298 beside a 720x1564 clip. Hanna is the only stage whose
+   handset is footage rather than a still: the clip bakes its corner at 10.4% and
+   has no alpha, so the region outside it is black rather than transparent, and
+   masking at exactly that radius would leave a dark fringe against the bezel.
+   Masking at the 11.57% the other handsets use is wider than the baked corner,
+   so it clips the corner away entirely and the curve is the mask's alone — the
+   same treatment slide 7's clip gets, and it keeps all four handsets on one
+   visible corner. It costs about 3px of picture at each corner. */
+.stage--hanna {
+	--ar: 1.74876;
+	--lap-w: 86.8090%;
+	--lap-bezel: 0.8293%;
+	--lap-r: 2.4752% / 3.8628%;
+	--lap-screen-r: 1.5495% / 2.4449%;
+	--ph-left: 78.5163%;
+	--ph-w: 21.4837%;
+	--ph-bezel: 0.8293%;
+	--ph-r: 14.537% / 6.9831%;
+	--ph-screen-r: 11.5702% / 5.3264%;
+}
+
+/* Laptop screen 2048x1346. SOREL commerce: a squarer screen than the above, so
+   the frame is narrower for its height and the arrangement re-solves around it.
+   The handset is the same export and keeps its numbers. */
+.stage--sorel-commerce {
+	--ar: 1.69632;
+	--lap-w: 86.3593%;
+	--lap-bezel: 0.8575%;
+	--lap-r: 2.4752% / 3.7275%;
+	--lap-screen-r: 1.5122% / 2.3009%;
+	--ph-left: 77.7839%;
+	--ph-w: 22.2161%;
+	--ph-bezel: 0.8575%;
+	--ph-r: 14.537% / 7.0047%;
+	--ph-screen-r: 11.5702% / 5.3435%;
+}
+
+/* The second screen of a pair lies on top of the first and dissolves in and
+   back out on a loop. Gated on .is-playing, which the observer adds only while
+   the slide is on screen and never under reduced motion, so these behave the
+   same way as the clips on the other slides. The class lands on the stage, not
+   on each frame, so the two run off one clock and cannot drift apart.
+
+   The four screens take their turn in order, one frame moving at a time. Both
+   animations share a 16s cycle and are offset within it so no two dissolves
+   ever overlap: the phone advances at 2s, the laptop at 6s, the phone returns
+   at 10s and the laptop at 14s, each taking 1.5s, which leaves 2.5s of
+   stillness between one dissolve ending and the next beginning. Every screen
+   holds for 6.5s, so none of the four is favoured.
+
+   Both tracks begin and end the cycle at 0, which is also where they rest when
+   the slide is off screen — the arrangement is the laptop's first screen beside
+   the phone's first, and starting the loop cannot make either frame jump. */
+.stage__b {
+	opacity: 0;
+}
+
+.stage.is-playing .stage__laptop .stage__b {
+	animation: stage-laptop 16s ease-in-out infinite;
+}
+
+.stage.is-playing .stage__phone .stage__b {
+	animation: stage-phone 16s ease-in-out infinite;
+}
+
+/* Third in the order: the phone moves first, at 2s. */
+@keyframes stage-phone {
+	0%,
+	12.5% {
+		opacity: 0;
+	}
+	21.875%,
+	62.5% {
+		opacity: 1;
+	}
+	71.875%,
+	100% {
+		opacity: 0;
+	}
+}
+
+/* Fourth: the laptop follows at 6s, well clear of the phone's dissolve. */
+@keyframes stage-laptop {
+	0%,
+	37.5% {
+		opacity: 0;
+	}
+	46.875%,
+	87.5% {
+		opacity: 1;
+	}
+	96.875%,
+	100% {
+		opacity: 0;
+	}
+}
+
+/* --------------------------------------------------------------- clients */
+
+.clients {
+	display: grid;
+	place-items: center;
+	background: #000;
+	padding: 0 var(--gutter);
+}
+
+/* The hero and this slide are both pure black and sit flush, but the
+   sub-pixel seam where they meet let the light body background show through
+   as a white hairline — most obvious during the fade, when no photograph
+   covers it. This straddles the join in black. It lives on .clients rather
+   than .hero so it paints after the hero (both are position:relative with
+   z-index auto, so DOM order decides) and covers the seam instead of being
+   covered by it. No layout or snap positions change. The body itself cannot
+   just be black: the project slides use it as their light background. */
+.clients::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -2px;
+	height: 4px;
+	background: #000;
+	pointer-events: none;
+}
+
+/* The row ships as one 2x strip, so the spacing and optical sizing between
+   marks come straight from the design rather than being re-derived here.
+   1006px is its natural 1x width, which is what the design shows at 1920. */
+.clients__row {
+	/* 754 = the strip's natural 1x width (1006) less 25%. The viewport term
+	   still governs on narrow screens, where it is already the smaller of
+	   the two, so this only reduces the desktop size. */
+	width: min(754px, calc(100vw - var(--gutter) * 2));
+	height: auto;
+	transform-origin: center center;
+	/* Above the lifted hero photo so the logos are never occluded by it. */
+	position: relative;
+	z-index: 2;
+	/* Held at the viewport centre through the exit too, so it can overlap the
+	   next section while fading; it must never intercept clicks there. */
+	pointer-events: none;
+	will-change: opacity, transform;
+}
+
+/* Without scripting (or with reduced motion) the strip simply stays visible;
+   the crossfade only ever lowers this value. */
+@media (prefers-reduced-motion: reduce) {
+	.clients__row,
+	.hero__photo,
+	.hero__copy,
+	.hero__scroll {
+		opacity: 1 !important;
+	}
+
+	.clients__row {
+		transform: none !important;
+	}
+}
+
 /* --------------------------------------------------------------- project */
 
 /* Each project pins its description while its visuals advance past, which is
@@ -374,7 +940,7 @@ figure {
 	grid-template-columns: var(--col) 1fr;
 	column-gap: clamp(24px, 5vw, 90px);
 	padding-left: var(--gutter);
-	padding-right: var(--gutter);
+	padding-right: var(--gutter-project-right);
 	align-items: start;
 }
 
@@ -417,20 +983,23 @@ figure {
 	font-size: var(--fs-body);
 	font-weight: 400;
 	line-height: 1.125;
+	letter-spacing: 0.02em;
 	color: var(--body);
 }
 
 .project__desc {
 	margin: 0 0 clamp(20px, 4vh, 42px);
 	font-size: var(--fs-body);
-	line-height: 1.125;
+	line-height: 1.5;
+	letter-spacing: 0.02em;
 	color: var(--body);
 }
 
 .project__meta {
 	margin: 0 0 clamp(20px, 4vh, 42px);
-	font-size: var(--fs-body);
-	line-height: 1.125;
+	/* Smaller than body copy, with looser leading to carry the caps. */
+	font-size: calc(var(--fs-body) * 0.8);
+	line-height: 1.6;
 	color: var(--body);
 }
 
@@ -453,8 +1022,7 @@ figure {
 }
 
 .project__cta {
-	font-size: var(--fs-chrome);
-	text-transform: uppercase;
+	font-size: var(--fs-body);
 	color: var(--body);
 	text-decoration: none;
 	align-self: start;
@@ -467,16 +1035,30 @@ figure {
 
 .project__visuals {
 	display: grid;
+	/* A grid item's automatic minimum is its min-content width, and the stage
+	   below derives one from its aspect ratio. Without this the 1fr track grew
+	   past its share to fit it, taking the whole visual column with it. */
+	min-width: 0;
 }
 
 .project__visual {
 	min-height: 100vh;
 	min-height: 100dvh;
+	/* Definite, not just min-height: a percentage max-height on the child
+	   only resolves against a definite parent height. With min-height alone
+	   the image's max-height:100% was ignored, so an asset taller than the
+	   slide rendered at natural size and pushed the panel past the viewport.
+	   Reset to auto below 900px, where panels are content-sized. */
+	height: 100dvh;
 	scroll-snap-align: start;
 	scroll-snap-stop: always;
 	display: grid;
+	/* The implicit row would otherwise be auto-sized to the image, so the
+	   image's max-height:100% resolved against its own height and never
+	   constrained anything. minmax(0, 1fr) pins the row to the padded box. */
+	grid-template-rows: minmax(0, 1fr);
 	place-items: center;
-	padding: clamp(90px, 11vh, 120px) 0 clamp(60px, 8vh, 90px);
+	padding: var(--visual-pad-top) 0 var(--visual-pad-bottom);
 }
 
 .project__visual img {
@@ -514,16 +1096,54 @@ figure {
 	opacity: 0.55;
 }
 
+/* ------------------------------------------------------------- reveal */
+
+/* Content settles in with a curve as each slide arrives, so a snap no longer
+   hard-cuts to a finished frame. The pre-reveal state is scoped to .js-reveal
+   (set by script.js) so the page still renders fully if scripting fails. */
+.reveal {
+	transition: opacity 0.75s cubic-bezier(0.22, 0.61, 0.36, 1),
+		transform 0.75s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.js-reveal .reveal {
+	opacity: 0;
+	transform: translateY(16px);
+}
+
+.js-reveal .reveal.is-in {
+	opacity: 1;
+	transform: none;
+}
+
+/* The visual trails its copy slightly so a project reads left-to-right. */
+.js-reveal .project__visual .reveal {
+	transition-delay: 0.08s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.js-reveal .reveal {
+		opacity: 1;
+		transform: none;
+		transition: none;
+	}
+}
+
 /* ---------------------------------------------------------- progress rail */
 
+/* Left margin, vertically centred. Total height stays constant as you scroll
+   because exactly one stop is ever expanded, so the centring never jumps. */
 .rail {
+	--dot: 5px;
+	--pill: 14px;
 	position: fixed;
-	right: clamp(10px, 1.2vw, 22px);
+	left: clamp(16px, 1.875vw, 36px);
 	top: 50%;
 	transform: translateY(-50%);
 	z-index: 55;
 	display: grid;
-	gap: 9px;
+	gap: 13px;
+	justify-items: center;
 	mix-blend-mode: difference;
 	filter: invert(1);
 }
@@ -531,24 +1151,38 @@ figure {
 /* The rail sits on difference-blend, so a literal grey would invert to near
    invisibility over the dark hero. Fading with opacity instead resolves to
    light grey on the light slides and stays legible over the photograph;
-   full opacity gives the prominent outline on hover and for the current
-   slide. */
+   full opacity gives the prominent mark on hover and for the current slide. */
+/* The layout box stays --dot tall whatever the state, so the pitch is
+   constant and growing the pill never reflows its neighbours. The visible
+   mark is the ::after, which overflows this box and is therefore free to be
+   anchored at either end. */
 .rail a {
 	position: relative;
-	width: 7px;
-	height: 7px;
-	border-radius: 50%;
-	border: 1px solid var(--ink);
+	width: var(--dot);
+	height: var(--dot);
 	opacity: 0.3;
-	transition: opacity 0.2s ease, background 0.25s ease;
+	transition: opacity 0.2s ease;
 }
 
-/* 7px is below a usable pointer target; widen it without shifting layout.
-   Dot pitch is 16px, so 15px keeps neighbours from overlapping. */
+.rail a::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	height: var(--dot);
+	border-radius: 3px;
+	background: var(--ink);
+	transition: height 0.28s ease, top 0.28s ease;
+}
+
+/* 5px is well below a usable pointer target; widen it without shifting
+   layout. Vertical inset is capped at half the gap so neighbouring targets
+   never overlap and steal each other's clicks. */
 .rail a::before {
 	content: '';
 	position: absolute;
-	inset: -4px;
+	inset: -6px -9px;
 }
 
 .rail a:hover,
@@ -556,17 +1190,51 @@ figure {
 	opacity: 1;
 }
 
+/* The current stop reads as a pill rather than a dot. */
 .rail a[aria-current='true'] {
-	background: var(--ink);
 	opacity: 1;
+}
+
+.rail a[aria-current='true']::after {
+	height: var(--pill);
+}
+
+/* Grow the way the reader is travelling. Scrolling down the top edge is
+   pinned and the pill extends downward; scrolling up the bottom edge is
+   pinned (top is pulled up by the extra height) so it extends upward.
+   Previously the growth direction fell out of document flow and came out
+   backwards in both directions. */
+.rail a[aria-current='true'][data-grow='up']::after {
+	top: calc(var(--dot) - var(--pill));
+}
+
+/* The pill overflows its 5px box, so without this it sits only 4px from the
+   neighbour it grows into while the far side keeps the full 13px. Opening a
+   matching gap on whichever side it expands toward restores an even rhythm.
+   Exactly one of these ever applies, so the rail's overall height stays
+   constant and it never re-centres. Growing down pushes the next dot away;
+   growing up pushes from the dot above, since flow can only ever displace
+   what follows. */
+.rail a[aria-current='true'][data-grow='down'],
+.rail a:has(+ a[aria-current='true'][data-grow='up']) {
+	margin-bottom: calc(var(--pill) - var(--dot));
+}
+
+/* The first stop has no dot above it to push from, and putting the margin
+   below it instead opened a 22px gap under the pill. Carrying the height on
+   the rail's own padding keeps every dot gap at 13px while still holding the
+   total constant, so the column does not shift when this stop is current.
+   The pill simply extends into the empty space above the rail. */
+.rail:has(a:first-child[aria-current='true'][data-grow='up']) {
+	padding-bottom: calc(var(--pill) - var(--dot));
 }
 
 /* --------------------------------------------------------------- responsive */
 
 @media (max-width: 900px) {
 	:root {
-		--fs-chrome: 11px;
-		--fs-body: 14px;
+		--fs-chrome: 12px;
+		--fs-body: 15px;
 	}
 
 	.deck {
@@ -580,17 +1248,36 @@ figure {
 		min-height: 0;
 	}
 
-	.chrome__id {
-		gap: 18px;
+	.project__visual {
+		height: auto;
 	}
 
-	.chrome__id p:nth-child(3) {
+	/* Too little width for the hairline once the email is in the row. */
+	.chrome__rule {
 		display: none;
+	}
+
+	.chrome {
+		justify-content: space-between;
 	}
 
 	.rail,
 	.hero__scroll {
 		display: none;
+	}
+
+	/* A portrait viewport crops far more of the photo's width (~1313px of
+	   overflow at 375px wide, against 326px on a 16:9 desktop), so panning
+	   hard left there would push the subject out of frame entirely. Keep the
+	   original centring on small screens. */
+	.hero__photo {
+		object-position: 62% center;
+	}
+
+	/* .panel drops its min-height here, which would collapse the logo band to
+	   the strip's own height. Padding gives it presence as a slide. */
+	.clients {
+		padding: clamp(80px, 20vh, 150px) var(--gutter);
 	}
 
 	/* .hero__copy supplies its own bottom padding here, so drop the desktop
@@ -602,7 +1289,9 @@ figure {
 	}
 
 	.hero__copy {
-		margin-left: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
 		padding: 0 var(--gutter) clamp(64px, 14vh, 120px);
 		max-width: none;
 	}
