@@ -4685,3 +4685,40 @@ body.home .site-header {
 		height: 48px;
 	}
 }
+
+/* Homepage: centre the circle logo on the line the copy starts from, rather
+   than aligning its left edge there. Half the logo's 80px width. */
+/* The theme centres content blocks with auto side margins, so overriding
+   margin-left would break the centring rather than nudge it. Shift after
+   layout instead: half the logo's 80px width, putting its centre on the line
+   the copy starts from. */
+body.home .entry-content .wp-block-image:has(img[src*="logo-512x512"]) {
+	transform: translateX(-40px);
+}
+
+/* On narrow screens the copy starts only 20px from the edge, so centring the
+   logo on that line would hang it half off-screen. Align it normally instead. */
+@media only screen and (max-width: 782px) {
+	body.home .entry-content .wp-block-image:has(img[src*="logo-512x512"]) {
+		transform: none;
+	}
+}
+
+/* Other pages: the header's side margin is responsive (141px at 1100px wide,
+   more on larger screens) while its top padding is a flat 32px. Override the
+   side margin so the logo's gap from the left matches its gap from the top at
+   every width. Below 560px the theme switches to 20px padding all round, so
+   dropping the margin there gives a matching 20px on both sides. */
+/* the theme centres the header via an #masthead rule, so match its ID
+   specificity or margin-left: auto keeps winning */
+#masthead.site-header {
+	margin-left: 32px;
+	margin-right: 32px;
+}
+
+@media only screen and (max-width: 560px) {
+	#masthead.site-header {
+		margin-left: 0;
+		margin-right: 0;
+	}
+}
