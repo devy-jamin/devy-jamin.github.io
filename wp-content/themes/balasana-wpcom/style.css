@@ -4722,3 +4722,112 @@ body.home .entry-content .wp-block-image:has(img[src*="logo-512x512"]) {
 		margin-right: 0;
 	}
 }
+
+/* ---- Inline unlock on the protected project cards -------------------------
+   The card asks for the password itself rather than sending you to a page that
+   then asks. Styling only; the behaviour lives in /assets/unlock-cards.js. */
+figure.dj-locked-card {
+	position: relative;
+}
+figure.dj-locked-card > a {
+	display: block;
+	cursor: default;
+}
+.dj-lock-overlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	/* matches the 20px radius the card images are given inline */
+	border-radius: 20px;
+	background: rgba(18, 18, 18, 0.72);
+	backdrop-filter: blur(3px);
+	-webkit-backdrop-filter: blur(3px);
+	color: #fff;
+	text-align: center;
+	padding: 24px;
+	box-sizing: border-box;
+}
+.dj-lock-inner {
+	max-width: 22rem;
+	width: 100%;
+}
+.dj-lock-icon {
+	width: 26px;
+	height: 26px;
+	margin: 0 auto 10px;
+	display: block;
+	opacity: 0.9;
+}
+.dj-lock-label {
+	margin: 0 0 14px;
+	font-size: 13px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	opacity: 0.85;
+}
+.dj-lock-form {
+	display: flex;
+	gap: 8px;
+	justify-content: center;
+}
+.dj-lock-input {
+	flex: 1 1 12rem;
+	min-width: 0;
+	padding: 10px 12px;
+	font: inherit;
+	font-size: 15px;
+	color: #fff;
+	background: rgba(255, 255, 255, 0.12);
+	border: 1px solid rgba(255, 255, 255, 0.35);
+	border-radius: 6px;
+}
+.dj-lock-input::placeholder {
+	color: rgba(255, 255, 255, 0.6);
+}
+.dj-lock-input:focus {
+	outline: none;
+	border-color: #fff;
+	background: rgba(255, 255, 255, 0.18);
+}
+.dj-lock-btn {
+	padding: 10px 20px;
+	font: inherit;
+	font-size: 15px;
+	color: #121212;
+	background: #fff;
+	border: 0;
+	border-radius: 6px;
+	cursor: pointer;
+}
+.dj-lock-btn:hover:not(:disabled) {
+	background: #e6e6e6;
+}
+.dj-lock-btn:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+.dj-lock-msg {
+	margin: 12px 0 0;
+	font-size: 13px;
+	min-height: 1.2em;
+	opacity: 0.9;
+}
+.dj-lock-msg.dj-lock-err {
+	color: #ff9d9d;
+	opacity: 1;
+}
+
+@media only screen and (max-width: 560px) {
+	.dj-lock-form {
+		flex-wrap: wrap;
+	}
+	.dj-lock-input,
+	.dj-lock-btn {
+		flex: 1 1 100%;
+	}
+	.dj-lock-label {
+		font-size: 12px;
+	}
+}
