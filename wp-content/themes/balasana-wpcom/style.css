@@ -4646,3 +4646,42 @@ body.admin-bar .widget_eu_cookie_law_widget.widget.top {
 		padding: 3rem 0;
 	}
 }
+
+/* ---- Site title / back-home link ------------------------------------------
+   On the homepage the wordmark links to the page you're already on, so it is
+   hidden there. On every other page it becomes the circle logo, acting as the
+   way back home, at 60px - a quarter smaller than the 80px logo on the
+   homepage. The link text stays in the markup for screen readers. */
+
+/* homepage: the wordmark links to itself, so drop it and its header space */
+body.home .site-branding {
+	display: none;
+}
+body.home .site-header {
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+/* every other page: the circle logo, linking home */
+.site-title {
+	margin: 0;
+	line-height: 0;
+}
+.site-title a {
+	display: block;
+	width: 60px;
+	height: 60px;
+	background: url('/wp-content/uploads/2017/07/logo-512x512.png') no-repeat center;
+	background-size: contain;
+	/* keep the words for screen readers, out of sight visually */
+	text-indent: -9999px;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+@media only screen and (max-width: 560px) {
+	.site-title a {
+		width: 48px;
+		height: 48px;
+	}
+}
