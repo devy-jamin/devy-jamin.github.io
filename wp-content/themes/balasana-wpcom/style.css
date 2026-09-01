@@ -4746,11 +4746,11 @@ figure.dj-locked-card > a {
 	-webkit-backdrop-filter: blur(4px);
 	color: #fff;
 	text-align: center;
-	padding: 24px;
+	padding: 24px 56px;
 	box-sizing: border-box;
 }
 .dj-lock-inner {
-	width: min(30rem, 100%);
+	width: min(23rem, 100%);
 }
 .dj-lock-icon {
 	width: 24px;
@@ -4775,7 +4775,7 @@ figure.dj-locked-card > a {
 /* the theme styles inputs by attribute selector, which outranks a bare
    class - match its specificity so the radius and colours stick */
 .dj-lock-form input.dj-lock-input {
-	flex: 1 1 22rem;
+	flex: 1 1 auto;
 	min-width: 0;
 	height: 56px;
 	padding: 0 20px;
@@ -4811,12 +4811,16 @@ figure.dj-locked-card > a {
 	transition: background-color 0.15s ease;
 }
 .dj-lock-btn svg {
-	width: 22px;
-	height: 22px;
+	width: 28px;
+	height: 28px;
 	display: block;
 }
+/* hover reverses it: dark fill, white arrow, outlined so it stays legible
+   against the dark overlay */
 .dj-lock-btn:hover:not(:disabled) {
-	background: #e2e2e2;
+	background: #111;
+	color: #fff;
+	box-shadow: inset 0 0 0 1px #fff;
 }
 .dj-lock-btn:focus-visible {
 	outline: 2px solid #fff;
@@ -4839,7 +4843,7 @@ figure.dj-locked-card > a {
 
 @media only screen and (max-width: 560px) {
 	.dj-lock-overlay {
-		padding: 16px;
+		padding: 16px 20px;
 	}
 	.dj-lock-label {
 		font-size: 11px;
