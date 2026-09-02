@@ -29,9 +29,9 @@ UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
 # slug -> (live WP path, output file, page title, meta description)
 PAGES = {
   "home": ("/", "index.html",
-     "Devy Jamin — Senior Product Designer",
-     "Devy Jamin is a Senior Product Designer based in Portland, OR, currently "
-     "working as a Design Lead at Nike. Selected product design work."),
+     "Devy Jamin — Sr. Lead Product Designer",
+     "Devy Jamin is a Sr. Lead Product Designer based in Portland, OR, "
+     "currently a Design Lead at Nike. Selected product design work."),
   "nike-artemis-case-study": ("/nike-artemis-case-study/", "nike-artemis-case-study/index.html",
      "Nike Artemis — Product Readiness & Activation Platform",
      "Full case study: Artemis, Nike's centralized product readiness and activation platform."),
