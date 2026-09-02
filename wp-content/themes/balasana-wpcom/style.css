@@ -4790,6 +4790,16 @@ figure.dj-locked-card.dj-open .dj-lock-overlay {
 figure.dj-locked-card.dj-open .dj-lock-badge {
 	opacity: 0;
 }
+
+/* Unlocking with a password we already hold: no point showing the field, so
+   the panel carries just the lock and the progress line. */
+.dj-unlocking .dj-lock-form,
+.dj-unlocking .dj-lock-label {
+	display: none;
+}
+.dj-unlocking .dj-lock-msg {
+	margin-top: 4px;
+}
 .dj-sr-only {
 	position: absolute;
 	width: 1px;

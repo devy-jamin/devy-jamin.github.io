@@ -14,7 +14,14 @@
 	'use strict';
 
 	var LOCKED = ['/nike-artemis/', '/nike-launch-admin/'];
+	// lock.py encrypts every protected page with one password, so the unlock is
+	// shared: entering it on any project opens them all for this session.
+	var KEY = 'dj-unlock';
 	if (!window.crypto || !crypto.subtle) return;      // needs a secure context
+
+	function storedPw() { try { return sessionStorage.getItem(KEY); } catch (e) { return null; } }
+	function storePw(pw) { try { sessionStorage.setItem(KEY, pw); } catch (e) {} }
+	function clearPw() { try { sessionStorage.removeItem(KEY); } catch (e) {} }
 
 	var LOCK_SVG =
 		'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
@@ -97,7 +104,7 @@
 			} catch (e) { /* one bad asset shouldn't block the page */ }
 		}
 
-		try { sessionStorage.setItem('dj-unlock-' + path, pw); } catch (e) {}
+		storePw(pw);
 
 		// put the right URL in the bar, then replace the document in place
 		try { history.pushState({ djUnlocked: path }, '', path); } catch (e) {}
@@ -143,16 +150,10 @@
 		return { input: input, msg: msg, btn: btn };
 	}
 
-	function unlockedAlready(path) {
-		try { return !!sessionStorage.getItem('dj-unlock-' + path); } catch (e) { return false; }
-	}
+	function unlockedAlready() { return !!storedPw(); }
 
 	/* ---- homepage card: form revealed over the artwork -------------------- */
 	function enhanceCard(figure, path) {
-		if (unlockedAlready(path)) {
-			figure.classList.add('dj-card-unlocked');
-			return;
-		}
 		figure.classList.add('dj-locked-card');
 
 		var overlay = document.createElement('div');
@@ -180,9 +181,30 @@
 			parts.input.value = '';
 		}
 
+		function say(text, err) {
+			parts.msg.textContent = text;
+			parts.msg.className = 'dj-lock-msg' + (err ? ' dj-lock-err' : '');
+		}
+
 		var link = figure.querySelector('a[href="' + path + '"]');
 		if (link) {
-			link.addEventListener('click', function (e) { e.preventDefault(); open(); });
+			link.addEventListener('click', async function (e) {
+				e.preventDefault();
+				var pw = storedPw();
+				if (!pw) { open(); return; }
+				// already unlocked another project this session: go straight in,
+				// showing progress instead of asking again
+				figure.classList.add('dj-open', 'dj-unlocking');
+				say('Unlocking…');
+				try {
+					await unlockInPlace(path, pw, say);
+				} catch (err) {
+					clearPw();                       // stale or wrong: ask properly
+					figure.classList.remove('dj-unlocking');
+					say('That password didn’t work.', true);
+					parts.input.focus();
+				}
+			});
 		}
 		document.addEventListener('click', function (e) {
 			if (figure.classList.contains('dj-open') && !figure.contains(e.target)) close();
@@ -229,24 +251,44 @@
 			if (e.key === 'Escape' && dlg.classList.contains('dj-open')) close();
 		});
 
+		function say(text, err) {
+			parts.msg.textContent = text;
+			parts.msg.className = 'dj-lock-msg' + (err ? ' dj-lock-err' : '');
+		}
+
 		dialogs[path] = {
 			open: function (from) {
 				opener = from || null;
+				dlg.classList.remove('dj-unlocking');
 				dlg.classList.add('dj-open');
 				requestAnimationFrame(function () {
 					requestAnimationFrame(function () { parts.input.focus(); });
 				});
-			}
+			},
+			openUnlocking: function () {
+				dlg.classList.add('dj-open', 'dj-unlocking');
+			},
+			showForm: function () { dlg.classList.remove('dj-unlocking'); },
+			say: say
 		};
 		return dialogs[path];
 	}
 
 	function enhanceLink(link, path) {
-		if (unlockedAlready(path)) return;           // already open; let it navigate
 		link.classList.add('dj-locked-link');
-		link.addEventListener('click', function (e) {
+		link.addEventListener('click', async function (e) {
 			e.preventDefault();
-			dialogFor(path).open(link);
+			var d = dialogFor(path);
+			var pw = storedPw();
+			if (!pw) { d.open(link); return; }
+			d.openUnlocking();
+			try {
+				await unlockInPlace(path, pw, d.say);
+			} catch (err) {
+				clearPw();
+				d.showForm();
+				d.say('That password didn’t work.', true);
+			}
 		});
 	}
 

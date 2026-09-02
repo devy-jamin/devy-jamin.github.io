@@ -11,7 +11,7 @@
    - otherwise it flashes for the second or so that decryption takes. */
 (function () {
 	try {
-		if (sessionStorage.getItem('dj-unlock-' + location.pathname)) {
+		if (sessionStorage.getItem('dj-unlock')) {
 			document.documentElement.className += ' dj-has-key';
 		}
 	} catch (e) {}
@@ -97,7 +97,7 @@
 	// leave the visitor staring at "Unlocking…" with no way to type a new one.
 	function revealForm() {
 		root.className = root.className.replace(/\bdj-has-key\b/g, '');
-		try { sessionStorage.removeItem('dj-unlock-' + location.pathname); } catch (e) {}
+		try { sessionStorage.removeItem('dj-unlock'); } catch (e) {}
 	}
 
 	async function keyFrom(pw) {
@@ -138,7 +138,7 @@
 		}
 
 		if (remember) {
-			try { sessionStorage.setItem('dj-unlock-' + location.pathname, pw); } catch (e) {}
+			try { sessionStorage.setItem('dj-unlock', pw); } catch (e) {}
 		}
 		document.open(); document.write(html); document.close();
 		return true;
@@ -151,7 +151,7 @@
 
 	// arrived with the password already in hand: open straight up
 	try {
-		var saved = sessionStorage.getItem('dj-unlock-' + location.pathname);
+		var saved = sessionStorage.getItem('dj-unlock');
 		if (saved) unlock(saved, false);
 	} catch (e) {}
 })();
