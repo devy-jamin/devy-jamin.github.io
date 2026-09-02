@@ -5,119 +5,155 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>__TITLE__</title>
 <meta name="robots" content="noindex, nofollow" />
+<script>
+/* Runs before the body paints. If this browser already has the password from
+   the card or the footer dialog, mark the document so the form is never shown
+   - otherwise it flashes for the second or so that decryption takes. */
+(function () {
+	try {
+		if (sessionStorage.getItem('dj-unlock-' + location.pathname)) {
+			document.documentElement.className += ' dj-has-key';
+		}
+	} catch (e) {}
+})();
+</script>
 <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto+Condensed%3A400%2C400i%2C700%2C700i%7CRoboto%3A400%2C400i%2C700%2C700i&#038;subset=latin%2Clatin-ext' media='all' />
 <link rel='stylesheet' href='/wp-content/themes/balasana-wpcom/style.css' media='all' />
-<link rel="icon" href="/wp-content/uploads/2017/07/cropped-logo-2-270x270.png" sizes="32x32" />
-<link rel="apple-touch-icon" href="/wp-content/uploads/2017/07/cropped-logo-2-270x270.png" />
+<link rel="icon" href="/wp-content/uploads/2017/07/cropped-logo-2-32x32.png" sizes="32x32" />
+<link rel="apple-touch-icon" href="/wp-content/uploads/2017/07/cropped-logo-2-180x180.png" />
 <style>
-  .lock-wrap { max-width: 30rem; margin: 0 auto; padding: 4rem 1rem 6rem; }
-  .lock-wrap h1 { margin: 0 0 .5rem; }
-  .lock-wrap p.lede { margin: 0 0 2rem; opacity: .7; }
-  .lock-form { display: flex; gap: .5rem; flex-wrap: wrap; }
-  .lock-form input[type=password] { flex: 1 1 14rem; padding: .75rem; font: inherit;
-    border: 1px solid currentColor; background: transparent; color: inherit; }
-  .lock-form button { padding: .75rem 1.75rem; font: inherit; cursor: pointer;
-    border: 1px solid #111; background: #111; color: #fff; }
-  .lock-form button:hover { background: #333; border-color: #333; }
-  .lock-msg { margin-top: 1rem; min-height: 1.5em; font-size: .9rem; }
-  .lock-msg.err { color: #c0392b; }
-  .lock-note { margin-top: 2.5rem; font-size: .85rem; opacity: .6; }
+	.dj-gate { min-height: 70vh; display: flex; align-items: center; justify-content: center;
+		padding: 40px 24px; box-sizing: border-box; }
+	.dj-gate .dj-lock-panel { text-align: center; }
+	.dj-gate-title { margin: 0 0 22px; font-size: 15px; letter-spacing: 0.02em;
+		color: rgba(255,255,255,0.75); }
+	/* while we already hold the password, show only a quiet status line */
+	.dj-gate-loading { display: none; margin: 0; font-size: 14px;
+		color: rgba(255,255,255,0.75); }
+	.dj-has-key .dj-gate-form-wrap { display: none; }
+	.dj-has-key .dj-gate-loading { display: block; }
 </style>
 </head>
 <body class="wp-embed-responsive wp-theme-varia-wpcom wp-child-theme-balasana-wpcom singular image-filters-enabled">
 <div id="page" class="site">
-  <header id="masthead" class="site-header responsive-max-width">
-    <div class="site-branding">
-      <p class="site-title"><a href="/" rel="home">Devy Jamin</a></p>
-    </div>
-  </header>
+	<header id="masthead" class="site-header responsive-max-width">
+		<div class="site-branding">
+			<p class="site-title"><a href="/" rel="home">Devy Jamin</a></p>
+		</div>
+	</header>
 
-  <div id="content" class="site-content">
-    <main class="site-main responsive-max-width">
-      <section class="lock-wrap">
-        <h1>__HEADING__</h1>
-        <p class="lede">This case study is password protected.</p>
-        <form class="lock-form" id="f">
-          <input type="password" id="pw" autocomplete="current-password"
-                 aria-label="Password" placeholder="Password" autofocus required />
-          <button type="submit">View</button>
-        </form>
-        <p class="lock-msg" id="msg" role="status" aria-live="polite"></p>
-        <p class="lock-note">Don't have the password?
-          <a href="mailto:devyjamin@gmail.com">Email me</a> and I'll share it.
-          &nbsp;·&nbsp; <a href="/">Back to work</a></p>
-      </section>
-    </main>
-  </div>
+	<div id="content" class="site-content">
+		<main class="site-main responsive-max-width">
+			<section class="dj-gate">
+				<div class="dj-lock-panel">
+					<div class="dj-lock-inner">
+						<span class="dj-lock-icon">
+							<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+								<path d="M7 10V7a5 5 0 0 1 10 0v3" fill="none" stroke="currentColor"
+									stroke-width="2" stroke-linecap="round"/>
+								<rect x="4" y="10" width="16" height="10" rx="2" fill="currentColor"/>
+							</svg>
+						</span>
+						<p class="dj-gate-title">__HEADING__</p>
+						<p class="dj-gate-loading">Unlocking…</p>
+						<div class="dj-gate-form-wrap">
+							<p class="dj-lock-label">Password protected</p>
+							<form class="dj-lock-form" id="f">
+								<input type="password" id="pw" class="dj-lock-input"
+									autocomplete="current-password" aria-label="Password"
+									placeholder="Password" required />
+								<button type="submit" class="dj-lock-btn" aria-label="View case study">
+									<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+										<path d="M5 12h13M12 5l7 7-7 7" fill="none" stroke="currentColor"
+											stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+									</svg>
+								</button>
+							</form>
+						</div>
+						<p class="dj-lock-msg" id="msg" role="status" aria-live="polite"></p>
+					</div>
+				</div>
+			</section>
+		</main>
+	</div>
 </div>
 
 <script>
 (function () {
-  var SALT = "__SALT__", IV = "__IV__", CT = "__CT__", ITER = __ITER__;
-  var msg = document.getElementById('msg');
-  var form = document.getElementById('f');
-  var input = document.getElementById('pw');
+	var SALT = "__SALT__", IV = "__IV__", CT = "__CT__", ITER = __ITER__;
+	var msg = document.getElementById('msg');
+	var form = document.getElementById('f');
+	var input = document.getElementById('pw');
+	var root = document.documentElement;
 
-  function bytes(b64) {
-    var s = atob(b64), a = new Uint8Array(s.length);
-    for (var i = 0; i < s.length; i++) a[i] = s.charCodeAt(i);
-    return a;
-  }
-  function say(t, err) { msg.textContent = t; msg.className = 'lock-msg' + (err ? ' err' : ''); }
+	function bytes(b64) {
+		var s = atob(b64), a = new Uint8Array(s.length);
+		for (var i = 0; i < s.length; i++) a[i] = s.charCodeAt(i);
+		return a;
+	}
+	function say(t, err) { msg.textContent = t; msg.className = 'dj-lock-msg' + (err ? ' dj-lock-err' : ''); }
 
-  async function keyFrom(pw) {
-    var base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw),
-      'PBKDF2', false, ['deriveKey']);
-    return crypto.subtle.deriveKey(
-      { name: 'PBKDF2', salt: bytes(SALT), iterations: ITER, hash: 'SHA-256' },
-      base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
-  }
+	// A stored password that turns out to be wrong (an old one, say) must not
+	// leave the visitor staring at "Unlocking…" with no way to type a new one.
+	function revealForm() {
+		root.className = root.className.replace(/\bdj-has-key\b/g, '');
+		try { sessionStorage.removeItem('dj-unlock-' + location.pathname); } catch (e) {}
+	}
 
-  async function unlock(pw, remember) {
-    say('Unlocking…');
-    var key;
-    try {
-      key = await keyFrom(pw);
-      var plain = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv: bytes(IV) }, key, bytes(CT));
-      var data = JSON.parse(new TextDecoder().decode(plain));
-    } catch (e) {
-      say('That password didn’t work. Try again.', true);
-      input.select();
-      return false;
-    }
+	async function keyFrom(pw) {
+		var base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw),
+			'PBKDF2', false, ['deriveKey']);
+		return crypto.subtle.deriveKey(
+			{ name: 'PBKDF2', salt: bytes(SALT), iterations: ITER, hash: 'SHA-256' },
+			base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+	}
 
-    var ids = Object.keys(data.assets);
-    var html = data.html;
-    for (var i = 0; i < ids.length; i++) {
-      var id = ids[i];
-      say('Loading media… ' + (i + 1) + ' of ' + ids.length);
-      try {
-        var buf = new Uint8Array(await (await fetch('/locked-assets/' + id + '.enc')).arrayBuffer());
-        var raw = await crypto.subtle.decrypt(
-          { name: 'AES-GCM', iv: buf.slice(0, 12) }, key, buf.slice(12));
-        var url = URL.createObjectURL(new Blob([raw], { type: data.assets[id].t }));
-        html = html.split('__ENC__' + id + '__').join(url);
-      } catch (e) { /* leave the token; a single bad asset shouldn't block the page */ }
-    }
+	async function unlock(pw, remember) {
+		say('Unlocking…');
+		var key;
+		try {
+			key = await keyFrom(pw);
+			var plain = await crypto.subtle.decrypt(
+				{ name: 'AES-GCM', iv: bytes(IV) }, key, bytes(CT));
+			var data = JSON.parse(new TextDecoder().decode(plain));
+		} catch (e) {
+			revealForm();
+			say('That password didn’t work. Try again.', true);
+			input.focus();
+			return false;
+		}
 
-    if (remember) {
-      try { sessionStorage.setItem('dj-unlock-' + location.pathname, pw); } catch (e) {}
-    }
-    document.open(); document.write(html); document.close();
-    return true;
-  }
+		var ids = Object.keys(data.assets);
+		var html = data.html;
+		for (var i = 0; i < ids.length; i++) {
+			var id = ids[i];
+			say('Loading media… ' + (i + 1) + ' of ' + ids.length);
+			try {
+				var buf = new Uint8Array(await (await fetch('/locked-assets/' + id + '.enc')).arrayBuffer());
+				var raw = await crypto.subtle.decrypt(
+					{ name: 'AES-GCM', iv: buf.slice(0, 12) }, key, buf.slice(12));
+				var url = URL.createObjectURL(new Blob([raw], { type: data.assets[id].t }));
+				html = html.split('__ENC__' + id + '__').join(url);
+			} catch (e) { /* one bad asset shouldn't block the page */ }
+		}
 
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    if (input.value) unlock(input.value, true);
-  });
+		if (remember) {
+			try { sessionStorage.setItem('dj-unlock-' + location.pathname, pw); } catch (e) {}
+		}
+		document.open(); document.write(html); document.close();
+		return true;
+	}
 
-  // don't re-prompt when coming back during the same browser session
-  try {
-    var saved = sessionStorage.getItem('dj-unlock-' + location.pathname);
-    if (saved) unlock(saved, false);
-  } catch (e) {}
+	form.addEventListener('submit', function (e) {
+		e.preventDefault();
+		if (input.value) unlock(input.value, true);
+	});
+
+	// arrived with the password already in hand: open straight up
+	try {
+		var saved = sessionStorage.getItem('dj-unlock-' + location.pathname);
+		if (saved) unlock(saved, false);
+	} catch (e) {}
 })();
 </script>
 </body>

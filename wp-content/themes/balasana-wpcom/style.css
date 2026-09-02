@@ -4835,14 +4835,15 @@ figure.dj-locked-card.dj-open .dj-lock-badge {
 }
 .dj-lock-form {
 	display: flex;
-	gap: 14px;
+	flex-direction: column;
 	align-items: center;
-	justify-content: center;
+	gap: 18px;
 }
 /* the theme styles inputs by attribute selector, which outranks a bare
    class - match its specificity so the radius and colours stick */
 .dj-lock-form input.dj-lock-input {
-	flex: 1 1 auto;
+	flex: none;
+	width: 100%;
 	min-width: 0;
 	height: 56px;
 	padding: 0 20px;
@@ -4914,9 +4915,6 @@ figure.dj-locked-card.dj-open .dj-lock-badge {
 		font-size: 11px;
 		margin-bottom: 14px;
 	}
-	.dj-lock-form {
-		gap: 10px;
-	}
 	.dj-lock-form input.dj-lock-input {
 		height: 48px;
 		font-size: 15px;
@@ -4958,7 +4956,9 @@ figure.dj-locked-card.dj-open .dj-lock-badge {
 	padding: 44px 56px 36px;
 	color: #fff;
 	text-align: center;
-	max-width: min(34rem, 100%);
+	/* a definite width: the panel is a flex item, so without one it shrink-wraps
+	   to its content and the stacked form collapses the field */
+	width: min(30rem, 100%);
 	box-sizing: border-box;
 }
 .dj-lock-close {
