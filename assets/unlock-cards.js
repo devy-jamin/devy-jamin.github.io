@@ -109,17 +109,24 @@
 		// put the right URL in the bar, then replace the document in place
 		try { history.pushState({ djUnlocked: path }, '', path); } catch (e) {}
 
-		// document.open() discards this document's listeners, so the Back
-		// handler has to be part of the page we are about to write - otherwise
-		// going back changes the URL while leaving the case study on screen.
-		var backFix = '<script>window.addEventListener("popstate",' +
-			'function(){location.reload();});<\/script>';
+		// document.open() discards this document's listeners, so these have to be
+		// part of the page we are about to write:
+		//  - Back must reload, or it changes the URL and leaves the case study up
+		//  - the scroll position carries over from wherever the card was, so a
+		//    swapped-in page would open partway down; reset it
+		var tail = '<script>' +
+			'window.addEventListener("popstate",function(){location.reload();});' +
+			'if("scrollRestoration" in history){history.scrollRestoration="manual";}' +
+			'window.scrollTo(0,0);' +
+			'<\/script>';
 		var at = page.lastIndexOf('</body>');
-		page = at > -1 ? page.slice(0, at) + backFix + page.slice(at) : page + backFix;
+		page = at > -1 ? page.slice(0, at) + tail + page.slice(at) : page + tail;
 
 		document.open();
 		document.write(page);
 		document.close();
+		// belt and braces: some browsers restore the old offset after the write
+		window.scrollTo(0, 0);
 	}
 
 	// Wire a panel's form up: unlock in place, reporting progress on the panel.
