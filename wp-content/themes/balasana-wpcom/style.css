@@ -4762,6 +4762,58 @@ figure.dj-locked-card.dj-open .dj-lock-overlay {
 	opacity: 1;
 	visibility: visible;
 }
+
+/* Resting lock badge - tells you the card is gated before you click it.
+   Fades out once the form is open so the two don't compete. */
+.dj-lock-badge {
+	position: absolute;
+	top: 16px;
+	right: 16px;
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(10, 10, 10, 0.55);
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
+	color: #fff;
+	pointer-events: none;
+	transition: opacity 0.18s ease;
+}
+.dj-lock-badge svg {
+	width: 15px;
+	height: 15px;
+	display: block;
+}
+figure.dj-locked-card.dj-open .dj-lock-badge {
+	opacity: 0;
+}
+.dj-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+@media only screen and (max-width: 560px) {
+	.dj-lock-badge {
+		top: 12px;
+		right: 12px;
+		width: 30px;
+		height: 30px;
+	}
+	.dj-lock-badge svg {
+		width: 13px;
+		height: 13px;
+	}
+}
 .dj-lock-icon {
 	width: 24px;
 	height: 24px;

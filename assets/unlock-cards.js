@@ -76,6 +76,18 @@
 			'</div>';
 		figure.appendChild(overlay);
 
+		// A small badge so the card reads as protected before anyone clicks it.
+		// The text is for screen readers; the icon carries it visually.
+		var badge = document.createElement('div');
+		badge.className = 'dj-lock-badge';
+		badge.innerHTML =
+			'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+				'<path d="M7 10V7a5 5 0 0 1 10 0v3" fill="none" stroke="currentColor" ' +
+					'stroke-width="2" stroke-linecap="round"/>' +
+				'<rect x="4" y="10" width="16" height="10" rx="2" fill="currentColor"/>' +
+			'</svg><span class="dj-sr-only">Password protected</span>';
+		figure.appendChild(badge);
+
 		var form = overlay.querySelector('.dj-lock-form');
 		var input = overlay.querySelector('.dj-lock-input');
 		var btn = overlay.querySelector('.dj-lock-btn');
