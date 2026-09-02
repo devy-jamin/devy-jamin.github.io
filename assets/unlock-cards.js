@@ -55,8 +55,11 @@
 		return m ? m[1] : null;
 	}
 
-	// Decrypt the target page's payload to confirm the password is right.
-	async function verify(path, pw) {
+	// Unlock the target page fully, right here: decrypt its copy, decrypt every
+	// image, then swap it into this document and correct the URL. Navigating
+	// instead would make the destination page repeat all of this, which is what
+	// caused the "Unlocking..." flash.
+	async function unlockInPlace(path, pw, status) {
 		// no-store matters: each lock.py run writes a new salt, so a cached copy
 		// of this page would have us check a correct password against stale
 		// ciphertext and call it wrong.
@@ -67,37 +70,72 @@
 		var salt = field(html, 'SALT'), iv = field(html, 'IV'), ct = field(html, 'CT');
 		var iter = /ITER = (\d+)/.exec(html);
 		if (!salt || !iv || !ct || !iter) throw new Error('not a locked page');
+
 		var base = await crypto.subtle.importKey(
 			'raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
 		var key = await crypto.subtle.deriveKey(
 			{ name: 'PBKDF2', salt: bytes(salt), iterations: +iter[1], hash: 'SHA-256' },
 			base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
-		await crypto.subtle.decrypt(
-			{ name: 'AES-GCM', iv: bytes(iv) }, key, bytes(ct));    // throws if wrong
-		return true;
+
+		// throws on a wrong password, before we have changed anything
+		var plain = await crypto.subtle.decrypt(
+			{ name: 'AES-GCM', iv: bytes(iv) }, key, bytes(ct));
+		var data = JSON.parse(new TextDecoder().decode(plain));
+
+		var ids = Object.keys(data.assets);
+		var page = data.html;
+		for (var i = 0; i < ids.length; i++) {
+			var id = ids[i];
+			if (status) status('Unlocking… ' + (i + 1) + ' of ' + ids.length);
+			try {
+				var buf = new Uint8Array(await (await fetch('/locked-assets/' + id + '.enc')).arrayBuffer());
+				var raw = await crypto.subtle.decrypt(
+					{ name: 'AES-GCM', iv: buf.slice(0, 12) }, key, buf.slice(12));
+				// blob URLs stay valid because we rewrite this same document
+				var url = URL.createObjectURL(new Blob([raw], { type: data.assets[id].t }));
+				page = page.split('__ENC__' + id + '__').join(url);
+			} catch (e) { /* one bad asset shouldn't block the page */ }
+		}
+
+		try { sessionStorage.setItem('dj-unlock-' + path, pw); } catch (e) {}
+
+		// put the right URL in the bar, then replace the document in place
+		try { history.pushState({ djUnlocked: path }, '', path); } catch (e) {}
+
+		// document.open() discards this document's listeners, so the Back
+		// handler has to be part of the page we are about to write - otherwise
+		// going back changes the URL while leaving the case study on screen.
+		var backFix = '<script>window.addEventListener("popstate",' +
+			'function(){location.reload();});<\/script>';
+		var at = page.lastIndexOf('</body>');
+		page = at > -1 ? page.slice(0, at) + backFix + page.slice(at) : page + backFix;
+
+		document.open();
+		document.write(page);
+		document.close();
 	}
 
-	// Wire a panel's form up to verify -> store -> navigate.
+	// Wire a panel's form up: unlock in place, reporting progress on the panel.
 	function wireForm(root, path) {
 		var form = root.querySelector('.dj-lock-form');
 		var input = root.querySelector('.dj-lock-input');
 		var btn = root.querySelector('.dj-lock-btn');
 		var msg = root.querySelector('.dj-lock-msg');
 
+		function say(text, err) {
+			msg.textContent = text;
+			msg.className = 'dj-lock-msg' + (err ? ' dj-lock-err' : '');
+		}
+
 		form.addEventListener('submit', async function (e) {
 			e.preventDefault();
 			if (!input.value) return;
 			btn.disabled = true;
-			msg.className = 'dj-lock-msg';
-			msg.textContent = 'Checking…';
+			say('Unlocking…');
 			try {
-				await verify(path, input.value);
-				try { sessionStorage.setItem('dj-unlock-' + path, input.value); } catch (err) {}
-				msg.textContent = 'Opening…';
-				location.href = path;
+				await unlockInPlace(path, input.value, function (m) { say(m); });
 			} catch (err) {
-				msg.className = 'dj-lock-msg dj-lock-err';
-				msg.textContent = 'That password didn’t work.';
+				say('That password didn’t work.', true);
 				btn.disabled = false;
 				input.select();
 			}
