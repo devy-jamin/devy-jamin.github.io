@@ -28,7 +28,13 @@
 
 	// Decrypt the target page's payload to confirm the password is right.
 	async function verify(path, pw) {
-		var html = await (await fetch(path, { credentials: 'same-origin' })).text();
+		// no-store matters: each lock.py run writes a new salt, so a cached copy
+		// of this page would have us check a correct password against stale
+		// ciphertext and call it wrong.
+		var html = await (await fetch(path, {
+			credentials: 'same-origin',
+			cache: 'no-store'
+		})).text();
 		var salt = field(html, 'SALT'), iv = field(html, 'IV'), ct = field(html, 'CT');
 		var iter = /ITER = (\d+)/.exec(html);
 		if (!salt || !iv || !ct || !iter) throw new Error('not a locked page');
