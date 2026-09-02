@@ -237,8 +237,11 @@ figure {
 	display: grid;
 	place-items: start end;
 	/* Level with the header's content so the panel covers the email and menu
-	   icon; .menu already stacks above .chrome. */
-	padding: var(--chrome-pad-y) var(--chrome-inset-right);
+	   icon; .menu already stacks above .chrome. One value on every side, so the
+	   gap to the right edge matches the gap to the top — the header's own right
+	   inset is deliberately tighter than its top one, and inheriting that here
+	   left the panel sitting further from the corner across than down. */
+	padding: var(--chrome-pad-y);
 	background: rgba(20, 20, 20, 0.42);
 	backdrop-filter: blur(2px);
 	opacity: 0;
@@ -255,9 +258,12 @@ figure {
 	position: relative;
 	/* Bounded by the overlay's own insets; 92vw overflowed them on narrow
 	   screens and pushed the panel out of alignment with the icon. */
-	/* 468 = 30px padding x2 + 42px logo + 18px gap + a 348px text column;
-	   the longest label needs 331px at 18px, which 444 could not hold. */
-	width: min(468px, calc(100vw - var(--chrome-inset-right) * 2));
+	/* 452 = the narrowest this can go while the longest label still holds one
+	   line at 18px. Taking out the 30px padding either side, the 42px logo and
+	   the 18px gap leaves a 332px column, and "Product Readiness & Activation
+	   Platform" measures 331.3px. 15% narrower (398) was tried and wrapped two
+	   of the six, which broke the level row heights. */
+	width: min(452px, calc(100vw - var(--chrome-pad-y) * 2));
 	background: #efefef;
 	border-radius: 14px;
 	padding: 32px 30px 36px;
@@ -309,29 +315,49 @@ figure {
 	color: var(--ink);
 	font-size: clamp(14px, 0.95vw, 18px);
 	line-height: 1.28;
-	padding: 6px 0;
-	border-radius: 6px;
-	transition: opacity 0.2s ease;
+	/* The padding grows the hit area and the highlight behind it; the matching
+	   negative margin pulls the row back to where it sat, so turning this on
+	   moved nothing. The highlight bleeds 12px into the panel's own 30px
+	   padding, which reads as a deliberate inset rather than a box drawn tight
+	   around the text. Rows are 32px apart, so the highlights clear each other
+	   by 12px. */
+	padding: 10px 12px;
+	margin: -10px -12px;
+	border-radius: 10px;
+	transition: background-color 0.18s ease;
 }
 
-.menu__link:hover {
-	opacity: 0.55;
+/* A light panel behind the row rather than fading the row itself. Expressed as
+   translucent ink so it stays a consistent step darker than the panel, which is
+   #efefef today — at 0.04 it lands on #e7e7e7, an 8-unit step. focus-visible
+   matches it so the menu reads the same way for the keyboard, which has a focus
+   trap to serve. */
+.menu__link:hover,
+.menu__link:focus-visible {
+	background: rgba(29, 29, 29, 0.04);
 }
 
 .menu__logo {
 	display: grid;
 	place-items: center;
 	width: 42px;
+	/* Fixed, so every row is the same height. The logos differ in aspect, and a
+	   row sized to whatever its own logo came to made the hover highlight jump
+	   between 38px and 57px down the list. 37.31px is the tallest of them —
+	   Ruby, 923x820, at this column's 42px — so levelling here costs no logo any
+	   size. It also clears the text at every viewport: the label tops out at
+	   18px, or 23px of line box. */
+	height: 37.31px;
 }
 
+/* Filling the box and letting object-fit do the scaling, rather than height:auto
+   off the width. Each logo lands at exactly the size it had before, centred in
+   the taller box, and one that is proportionally taller than Ruby would now be
+   contained rather than pushing its row out again. */
 .menu__logo img {
 	width: 100%;
-	height: auto;
+	height: 100%;
 	object-fit: contain;
-}
-
-.menu__logo--empty {
-	height: 0;
 }
 
 /* ------------------------------------------------------------ scroll deck */
