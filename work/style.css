@@ -149,19 +149,25 @@ figure {
 	font-size: var(--fs-chrome);
 	line-height: 1.07;
 	text-transform: uppercase;
-	color: var(--ink);
 	pointer-events: none;
-	mix-blend-mode: difference;
-	filter: invert(1);
+	/* Light by default, which is what the hero behind it needs, so the first
+	   paint is right before script runs. script.js flips this to
+	   data-bg="light" once the chrome is over the light slides.
+
+	   This used to be `color: var(--ink)` under mix-blend-mode: difference plus
+	   filter: invert(1), which derived the colour from whatever was behind it.
+	   Elegant, but it renders dark on the hero in iOS Safari: blending is
+	   unreliable on a position:fixed element there, since it composites on its
+	   own layer, and dropping either the blend or the invert lands on almost
+	   the same dark value. The slides are only ever #000 or #e5e5e5, so there
+	   is nothing to derive — two states and a geometry test are deterministic
+	   in every engine. */
+	color: #f2f2f2;
+	transition: color 0.25s ease;
 }
 
-/* mix-blend-mode + invert keeps the chrome legible over both the dark hero
-   photograph and the light project slides without scripting a colour swap. */
-@supports not (mix-blend-mode: difference) {
-	.chrome {
-		mix-blend-mode: normal;
-		filter: none;
-	}
+.chrome[data-bg='light'] {
+	color: var(--ink);
 }
 
 .chrome a,
@@ -208,6 +214,13 @@ figure {
 	appearance: none;
 	background: none;
 	border: 0;
+	/* Buttons do not inherit colour — they take the UA default, which is black.
+	   The bars below are drawn in currentColor, so without this they ignored the
+	   header's colour entirely and stayed dark on the black hero. The old
+	   filter: invert(1) on .chrome was inverting that black to white and hiding
+	   the bug everywhere the blend actually worked, which is why it only ever
+	   showed on iOS. */
+	color: inherit;
 	padding: 6px 0;
 	margin: 0;
 	cursor: pointer;
@@ -1337,6 +1350,19 @@ figure {
 
 	.project__visual {
 		padding: 0 0 28px;
+	}
+
+	/* The visual is height:auto here, so .composite's `height: 100%` has to
+	   resolve through an auto-height parent. Chromium falls back to the aspect
+	   ratio and sizes it off the width; WebKit can collapse it instead, taking
+	   the base image (height:100%) and the percentage-positioned device to zero
+	   and leaving an empty block — which is what iOS showed. Driving it from the
+	   width makes the height fall out of aspect-ratio with no percentage to
+	   resolve, which is how every .stage is already built, and those render
+	   correctly on the same device. */
+	.composite {
+		width: 100%;
+		height: auto;
 	}
 
 	.project__visuals {

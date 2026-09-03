@@ -365,6 +365,44 @@
 		crossfade();
 	}
 
+	/* ------------------------------------------------- chrome on dark/light */
+
+	/* The header sits over two kinds of slide and has to stay legible on both.
+	   .hero and .clients are #000; every project slide is the light body. So
+	   this is not a gradient to sample, it is a boundary to find: the chrome is
+	   light until the last black panel's bottom edge passes its midline, and
+	   dark after.
+
+	   Geometry rather than the rail's active-stop observer, because that fires
+	   at a 0.5 threshold — half a slide away from where the background actually
+	   changes behind the header. Rects are viewport-relative, so this holds
+	   whether the deck is the scroller or the document is. */
+	var chrome = document.querySelector('.chrome');
+	var lastDark = document.getElementById('clients');
+
+	if (chrome && lastDark) {
+		var chromeTicking = false;
+
+		function paintChrome() {
+			chromeTicking = false;
+			var box = chrome.getBoundingClientRect();
+			var mid = box.top + box.height / 2;
+			var overDark = lastDark.getBoundingClientRect().bottom > mid;
+			chrome.setAttribute('data-bg', overDark ? 'dark' : 'light');
+		}
+
+		function onChromeScroll() {
+			if (chromeTicking) return;
+			chromeTicking = true;
+			window.requestAnimationFrame(paintChrome);
+		}
+
+		if (deck) deck.addEventListener('scroll', onChromeScroll, { passive: true });
+		window.addEventListener('scroll', onChromeScroll, { passive: true });
+		window.addEventListener('resize', onChromeScroll);
+		paintChrome();
+	}
+
 	/* --------------------------------------------------- keyboard paging */
 
 	if (deck) {
