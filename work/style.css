@@ -337,17 +337,56 @@ figure {
 	padding: 10px 12px;
 	margin: -10px -12px;
 	border-radius: 10px;
-	transition: background-color 0.18s ease;
+	position: relative;
+	/* So the highlight's z-index: -1 stays behind this row's own content and
+	   cannot slip behind the panel underneath it. */
+	isolation: isolate;
 }
 
 /* A light panel behind the row rather than fading the row itself. Expressed as
    translucent ink so it stays a consistent step darker than the panel, which is
    #efefef today — at 0.04 it lands on #e7e7e7, an 8-unit step. focus-visible
    matches it so the menu reads the same way for the keyboard, which has a focus
-   trap to serve. */
-.menu__link:hover,
-.menu__link:focus-visible {
+   trap to serve.
+
+   Drawn on a pseudo-element rather than the row's own background so it can be
+   held still while the content moves over it. It only fades; the travel below
+   belongs to the logo and label. */
+.menu__link::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
 	background: rgba(29, 29, 29, 0.04);
+	opacity: 0;
+	transition: opacity 0.22s ease;
+}
+
+.menu__link:hover::before,
+.menu__link:focus-visible::before {
+	opacity: 1;
+}
+
+/* The motion is all here. The panel alone could not carry it: at 4% ink it is
+   an 8-unit step against #efefef, so sliding it was sliding something almost
+   invisible. The logo and label are full-contrast, so a 4px nudge is what
+   actually reads, against a highlight that simply appears beneath them. */
+.menu__link > * {
+	transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.menu__link:hover > *,
+.menu__link:focus-visible > * {
+	transform: translateX(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.menu__link::before,
+	.menu__link > * {
+		transition: none;
+		transform: none;
+	}
 }
 
 .menu__logo {
@@ -938,10 +977,11 @@ figure {
    marks come straight from the design rather than being re-derived here.
    1006px is its natural 1x width, which is what the design shows at 1920. */
 .clients__row {
-	/* 754 = the strip's natural 1x width (1006) less 25%. The viewport term
-	   still governs on narrow screens, where it is already the smaller of
-	   the two, so this only reduces the desktop size. */
-	width: min(754px, calc(100vw - var(--gutter) * 2));
+	/* 905 = the previous 754 up 20%, which is still 90% of the strip's natural
+	   1x width (1006), so it is scaled down rather than up and stays sharp. The
+	   viewport term still governs on narrow screens, where it is already the
+	   smaller of the two, so this only changes the desktop size. */
+	width: min(905px, calc(100vw - var(--gutter) * 2));
 	height: auto;
 	transform-origin: center center;
 	/* Above the lifted hero photo so the logos are never occluded by it. */
@@ -1350,6 +1390,16 @@ figure {
 
 	.project__visual {
 		padding: 0 0 28px;
+	}
+
+	/* The strip is one fixed-proportion image, so on a phone it comes down to
+	   marks about 15px tall — present but not readable. The whole slide goes
+	   rather than just the image, since hiding the image alone would leave an
+	   empty black panel between the hero and the first project. script.js
+	   watches for it having no layout box: the crossfade reads its geometry,
+	   and the skip link and the scroll cue both point at it. */
+	.clients {
+		display: none;
 	}
 
 	/* The visual is height:auto here, so .composite's `height: 100%` has to

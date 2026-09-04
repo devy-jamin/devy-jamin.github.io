@@ -17,6 +17,11 @@
 	}
 
 	function goTo(el) {
+		/* Skip past anything that is not rendered — the logo band is hidden on
+		   mobile, and both the skip link and the hero's scroll cue point at it,
+		   so without this they would scroll nowhere. */
+		while (el && !el.getBoundingClientRect().height) el = el.nextElementSibling;
+		if (!el) return;
 		/* Below 900px the deck is a normal document flow, not a scroller. */
 		if (window.matchMedia('(max-width: 900px)').matches) {
 			el.scrollIntoView({ behavior: smooth(), block: 'start' });
@@ -319,7 +324,17 @@
 			if (!vh) return;
 			/* Viewport-relative, so this works whether the deck is the
 			   scroller (desktop) or the document is (below 900px). */
-			var top = clientsSection.getBoundingClientRect().top;
+			/* Whichever slide actually follows the hero. The logo band is hidden
+			   on mobile, where its rect reads all zeros — taking that at face
+			   value would read as the next slide having fully arrived and fade
+			   the hero out on load, and since the photograph is viewport-fixed
+			   it would then sit over the whole page. Falling through to the
+			   first project keeps the hero's fade tied to whatever is really
+			   coming up behind it. */
+			var ref = clientsSection;
+			while (ref && !ref.getBoundingClientRect().height) ref = ref.nextElementSibling;
+			if (!ref) return;
+			var top = ref.getBoundingClientRect().top;
 			var q = (1 - top / vh) / SEQ_SPAN;
 			q = q < 0 ? 0 : q > 1 ? 1 : q;
 
@@ -340,6 +355,9 @@
 				   it has faded out. */
 				heroScroll.style.pointerEvents = heroOut < 0.05 ? 'none' : '';
 			}
+
+			/* Nothing to fade when the band is not rendered. */
+			if (ref !== clientsSection) return;
 
 			clientsStrip.style.opacity = (logosIn * (1 - logosOut)).toFixed(3);
 			/* Hold the strip at the viewport centre for the whole approach and
