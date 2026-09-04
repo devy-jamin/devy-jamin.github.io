@@ -913,8 +913,8 @@ figure {
 	animation: stage-phone 16s ease-in-out infinite;
 }
 
-/* Third in the order: the phone moves first, at 2s. */
-@keyframes stage-phone {
+/* Third in the order: the laptop moves first, at 2s, and returns at 10s. */
+@keyframes stage-laptop {
 	0%,
 	12.5% {
 		opacity: 0;
@@ -929,8 +929,9 @@ figure {
 	}
 }
 
-/* Fourth: the laptop follows at 6s, well clear of the phone's dissolve. */
-@keyframes stage-laptop {
+/* Fourth: the phone follows at 6s, well clear of the laptop's dissolve, and
+   returns at 14s. */
+@keyframes stage-phone {
 	0%,
 	37.5% {
 		opacity: 0;
