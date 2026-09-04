@@ -829,11 +829,18 @@ figure {
 	border-radius: var(--ph-screen-r);
 }
 
-/* Laptop screen 2048x1300. Ruby's portal and SOREL's editorial clip encode to
-   the same frame, and every handset here is the same 726x1572 export, so the
-   two arrangements solve to one set of numbers. They are shared deliberately
-   rather than duplicated — re-export either laptop asset at a different aspect
-   and it needs splitting back out. */
+/* Laptop screen 2048x1300 beside a 726x1572 handset. Ruby's is a still and
+   SOREL's editorial is a clip, but they are the same frame, so the two
+   arrangements solve to one set of numbers. Shared deliberately rather than
+   duplicated — re-export either at a different aspect and it needs splitting
+   back out.
+
+   The clip carries a baked 1px dark edge, as every export here has, and is
+   deliberately left uncropped: cropping would take it to 724x1568 and break
+   the match. The edge is dark, it meets the dark bezel, and the handset renders
+   the frame at about a third of its size, so a source pixel is a third of a
+   display pixel of dark against dark. The corners are cut by the 11.57% mask,
+   which is wider than the clip's baked 10.88% curve. */
 .stage--ruby,
 .stage--sorel-editorial {
 	--ar: 1.74713;
