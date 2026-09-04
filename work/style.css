@@ -1340,6 +1340,40 @@ figure {
 		justify-content: space-between;
 	}
 
+	/* On a phone the slides are a normal document flow, so copy and artwork run
+	   up underneath the fixed header. Over the light slides it needs a ground to
+	   sit on. Only there: the hero is already black behind it, and a light scrim
+	   over that would be a grey bar across the photograph.
+
+	   Taller than the header so the fade finishes below it, and stepped rather
+	   than a straight two-stop ramp because a long linear run of alpha over a
+	   flat colour is where banding shows. z-index -1 keeps it behind the header's
+	   own text while staying inside .chrome's stacking context, which is above
+	   the page. Opacity is transitioned on the same timing as the colour swap,
+	   so the two changes read as one. */
+	.chrome::before {
+		content: '';
+		position: absolute;
+		inset: 0 0 auto 0;
+		height: calc(100% + 32px);
+		z-index: -1;
+		pointer-events: none;
+		background: linear-gradient(
+			180deg,
+			var(--bg) 0%,
+			rgba(229, 229, 229, 0.98) 38%,
+			rgba(229, 229, 229, 0.85) 58%,
+			rgba(229, 229, 229, 0.5) 78%,
+			rgba(229, 229, 229, 0) 100%
+		);
+		opacity: 0;
+		transition: opacity 0.25s ease;
+	}
+
+	.chrome[data-bg='light']::before {
+		opacity: 1;
+	}
+
 	.rail,
 	.hero__scroll {
 		display: none;
