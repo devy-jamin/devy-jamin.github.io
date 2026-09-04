@@ -396,17 +396,27 @@
 	   changes behind the header. Rects are viewport-relative, so this holds
 	   whether the deck is the scroller or the document is. */
 	var chrome = document.querySelector('.chrome');
-	var lastDark = document.getElementById('clients');
+	/* Both of these are #000. The logo band is the last of them on desktop; on
+	   mobile it is hidden and the hero is. Listed darkest-last and read in
+	   reverse, so whichever is really on the page decides the boundary — a
+	   hidden element's rect is all zeros, and taking that as the edge put the
+	   header in dark ink over the black hero. */
+	var darkPanels = [document.getElementById('intro'), document.getElementById('clients')];
 
-	if (chrome && lastDark) {
+	if (chrome && darkPanels[0]) {
 		var chromeTicking = false;
 
 		function paintChrome() {
 			chromeTicking = false;
 			var box = chrome.getBoundingClientRect();
 			var mid = box.top + box.height / 2;
-			var overDark = lastDark.getBoundingClientRect().bottom > mid;
-			chrome.setAttribute('data-bg', overDark ? 'dark' : 'light');
+			var edge = 0;
+			darkPanels.forEach(function (panel) {
+				if (!panel) return;
+				var rect = panel.getBoundingClientRect();
+				if (rect.height && rect.bottom > edge) edge = rect.bottom;
+			});
+			chrome.setAttribute('data-bg', edge > mid ? 'dark' : 'light');
 		}
 
 		function onChromeScroll() {
