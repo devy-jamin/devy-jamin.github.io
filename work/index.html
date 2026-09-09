@@ -17,7 +17,7 @@
 	<meta name="twitter:description" content="Selected work 2018–2026: product and platform design for Nike, Ruby, SOREL and Hanna Andersson." />
 	<meta name="twitter:image" content="https://devyjamin.com/work/assets/hero.jpg" />
 	<link rel="preload" href="fonts/geist-400-latin.woff2" as="font" type="font/woff2" crossorigin />
-	<link rel="stylesheet" href="style.css?v=8b545af7" />
+	<link rel="stylesheet" href="style.css?v=6ec0a5f3" />
 </head>
 <body>
 	<a class="visually-hidden" href="#clients">Skip to work</a>
@@ -313,6 +313,20 @@
 
 	</main>
 
-	<script src="script.js?v=96119f5f"></script>
+	<!-- Case study sheet. The document itself is loaded in an iframe (see
+	     .cs in style.css for why); everything here is the frame around it. -->
+	<div class="cs" id="cs" hidden>
+		<div class="cs__panel" role="dialog" aria-modal="true" aria-label="Case study" tabindex="-1">
+			<button class="cs__close" type="button" aria-label="Close case study">
+				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path d="M6 6 18 18M18 6 6 18" />
+				</svg>
+			</button>
+			<iframe class="cs__doc" title="Case study" scrolling="yes"></iframe>
+		</div>
+	</div>
+
+
+	<script src="script.js?v=ab5f7bbe"></script>
 </body>
 </html>

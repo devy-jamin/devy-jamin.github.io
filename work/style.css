@@ -1471,3 +1471,174 @@ figure {
 		transition-duration: 0.01ms !important;
 	}
 }
+
+/* ------------------------------------------------------------- case study */
+
+/* The case studies are complete WordPress documents — 20 stylesheets, their
+   own reset, their own type scale. Pulling that markup into this page would
+   put both cascades in the same document and turn every future deck change
+   into a collision hunt. An iframe keeps them fully separate and renders each
+   page exactly as it does standalone. Same origin, so the handful of edits the
+   design calls for (footer out, brand mark in) are made by script once the
+   document has loaded — see dressDocument() in script.js. */
+.cs {
+	position: fixed;
+	inset: 0;
+	/* Above the menu panel, which sits at 70. */
+	z-index: 90;
+	/* Blurs whatever is behind the overlay — the deck and the header both.
+	   backdrop-filter rather than a filter on .deck itself: a filter would
+	   make the deck a containing block for its own fixed children, which is
+	   what positions the header, and the blur would then have to be undone
+	   for it. This leaves the deck's own rendering untouched. */
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+}
+
+.cs__panel {
+	position: absolute;
+	/* 32px on the top and both sides. No bottom inset: the sheet runs off the
+	   foot of the viewport rather than closing, which is what gives it the
+	   sense of having been pulled up over the deck. */
+	top: 32px;
+	left: 32px;
+	right: 32px;
+	bottom: 0;
+	background: #fff;
+	border: 8px solid #222;
+	/* The bottom edge is off-screen, so drawing it would only ever show as a
+	   dark line when the panel animates in. */
+	border-bottom: 0;
+	border-radius: 32px 32px 0 0;
+	/* Clips the document to the rounded corners. */
+	overflow: hidden;
+	/* The same three-stop shadow the device frames use — a tight contact
+	   shadow plus two wide soft ones — so the sheet is lit like everything
+	   else on the page rather than introducing a second lighting model. */
+	box-shadow:
+		0 2px 7px rgba(0, 0, 0, 0.066),
+		0 18px 44px -12px rgba(0, 0, 0, 0.266),
+		0 44px 88px -30px rgba(0, 0, 0, 0.209);
+}
+
+/* On a wide sheet the document is rendered at a fixed width and scaled up to
+   fill it, which enlarges the whole page — copy included — rather than just
+   letting the theme's 1006px column float in white space. 1280 was the first
+   attempt and overdid it: 1.44x on a 1920 display, putting 28.8px body copy on
+   screen against the 20px the page sets. 1550 lands nearer 1.19x and ~23.7px.
+
+   The scale never drops below 1. Below that width the document is handed the
+   sheet's own width instead, so a laptop gets the page at its native size
+   rather than a shrunken one. See fitDocument(). */
+.cs__doc {
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	border: 0;
+	transform-origin: top left;
+}
+
+/* Tucked into the corner, and deliberately not tied to the document's own
+   back-to-top button: that control lives inside the scaled iframe, so matching
+   it meant scaling with the document.
+
+   The disc is what makes the mark legible. The case studies run white sections
+   and full-bleed near-black artwork past this corner, and no single ink colour
+   survives both — measured on the Nike page, roughly a quarter of the artwork
+   under this spot is dark enough to swallow a black glyph. Sampling the
+   backdrop and flipping the ink was tried first and was worse: one small patch
+   is a poor stand-in for a busy image, so it inverted in the wrong places. A
+   light disc removes the question — the glyph is always dark on light, and on
+   a white section the disc simply is not visible. Same reason the theme puts
+   its back-to-top glyph on one. */
+.cs__close {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	z-index: 2;
+	display: grid;
+	place-items: center;
+	/* Matches the document's own back-to-top button — a 48px disc with a 32px
+	   glyph — which scales with the document, so these track the same factor.
+	   Size only: the corner inset below stays put. */
+	width: var(--cs-close-size, 48px);
+	height: var(--cs-close-size, 48px);
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: #fff;
+	/* Buttons do not inherit colour. */
+	color: var(--ink);
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+}
+
+.cs__close:hover,
+.cs__close:focus-visible {
+	background: #ededed;
+}
+
+.cs__close:hover,
+.cs__close:focus-visible {
+	opacity: 1;
+}
+
+.cs__close svg {
+	/* The arrow's glyph is 32px on the same 24-unit grid at the same 1.6
+	   stroke, so the two marks match in size and weight at any scale. */
+	width: var(--cs-close-icon, 32px);
+	height: var(--cs-close-icon, 32px);
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.6;
+}
+
+/* The deck is the scroller above 900px and the document is below it, so both
+   need holding still while the sheet is open. */
+body.cs-open,
+body.cs-open .deck {
+	overflow: hidden;
+}
+
+/* Opacity and transform only — the panel carries a live document, and
+   animating anything that forces layout inside it stutters badly. */
+.cs {
+	opacity: 0;
+	transition: opacity 0.28s ease;
+}
+
+.cs[data-open] {
+	opacity: 1;
+}
+
+.cs__panel {
+	transform: translateY(18px);
+	transition: transform 0.34s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.cs[data-open] .cs__panel {
+	transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cs,
+	.cs__panel {
+		transition: none;
+	}
+}
+
+@media (max-width: 900px) {
+	.cs__panel {
+		top: 12px;
+		left: 12px;
+		right: 12px;
+		border-width: 6px;
+		border-bottom: 0;
+		border-radius: 22px 22px 0 0;
+	}
+
+
+}

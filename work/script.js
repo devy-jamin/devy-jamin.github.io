@@ -458,4 +458,269 @@
 			deck.scrollTo({ top: next, behavior: smooth() });
 		});
 	}
+
+	/* ------------------------------------------------------------ case study */
+
+	/* The CTAs used to open a new tab. They now raise the case study over the
+	   deck in an iframe, so the visitor never loses their place in the work.
+	   The href stays real and the anchor keeps working without JS — if this
+	   block throws or never runs, the links still navigate. */
+	var cs = document.getElementById('cs');
+	if (cs) {
+		var csPanel = cs.querySelector('.cs__panel');
+		var csDoc = cs.querySelector('.cs__doc');
+		var csCloseBtn = cs.querySelector('.cs__close');
+		var csOpener = null;
+		var csPaused = [];
+
+		/* The deck already ships these marks. The iframe document sits at a
+		   different path, so they have to be referenced from the root. */
+		var csLogos = {
+			'/nike-artemis-case-study/': ['/work/assets/logo-nike.svg', 'Nike', 70],
+			'/ruby-mobile-app/': ['/work/assets/logo-ruby.png', 'Ruby', 70],
+			'/ruby-ros/': ['/work/assets/logo-ruby.png', 'Ruby', 70],
+			'/sorel-site-design/': ['/work/assets/logo-sorel.svg', 'SOREL', 70],
+			/* The Hanna script mark carries more internal whitespace than the
+			   other three, so a matching bounding box reads visually smaller.
+			   Same 10% correction the deck applies at .project__logo--hanna,
+			   which also keeps the mark identical between slide and sheet. */
+			'/hanna-mobile/': ['/work/assets/logo-hanna.png', 'Hanna Andersson', 83]
+		};
+
+		/* Everything the design asks to change about the case study document,
+		   applied from here rather than by editing six exported WordPress
+		   pages — which would have to be redone on every re-export. */
+		function dressDocument(doc, path) {
+			if (!doc || doc.getElementById('cs-dress')) return;
+
+			var mark = csLogos[path];
+			var style = doc.createElement('style');
+			style.id = 'cs-dress';
+			style.textContent = [
+				/* 2. The footer goes. Two separate things are called "footer"
+				   here: the theme's own #colophon, and — the one that is
+				   actually visible — a black block the page author built as
+				   the last item of the content itself, carrying "Up Next",
+				   a Home link and the copyright line. Verified on all five
+				   pages: same four classes, black background, always the
+				   final child. It has to go for a second reason beyond the
+				   design — its links would navigate the sheet to another case
+				   study or to the homepage, stranding the visitor inside a
+				   modal with no way back but the close button. */
+				'#colophon, .site-footer { display: none !important; }',
+				'.entry-content > .wp-block-columns.alignfull.has-text-color.has-background:last-child { display: none !important; }',
+				/* The site header repeats the DJ mark that the deck already
+				   shows in its own chrome, and the mockups do not carry it.
+				   Its 124px of height is put back as padding so the opening
+				   whitespace above the title is unchanged. */
+				'#masthead { display: none !important; }',
+				'#content.site-content { padding-top: 124px; }',
+				/* The sheet is unscaled below the breakpoint, so that 124px is
+				   real estate rather than a scaled-down echo of it — far too
+				   much dead space above the mark on a phone. */
+				'@media (max-width: 780px) { #content.site-content { padding-top: 36px; } }',
+				/* 1. Brand mark in the empty left column of the opening block,
+				   flush with its left edge — the same edge the section labels
+				   further down the page ("Background", "Design Decisions")
+				   align to. */
+				/* 3. The back-to-top button stays, but its glyph is drawn as a
+				   filled outline — its weight is baked into the path, so it
+				   cannot be thinned and it reads heavier than the close mark
+				   beside it. Redrawn below as a stroked arrow on the same
+				   24-unit grid and the same 1.6 stroke as the X, so the two
+				   controls are built the same way. */
+				/* #1d1d1d is --ink. The variable is declared on the deck's own
+				   :root and does not cross into this document, so the value is
+				   written out; if the palette moves, this moves with it. */
+				'#scrollup-master svg path { fill: none; stroke: #1d1d1d; stroke-width: 1.6; }',
+				/* The pull-quote blocks on the light grey ground read centred.
+				   Targeted on the inline background the author set rather than
+				   a class, because the theme writes the colour straight into
+				   the style attribute and gives every one of these blocks the
+				   same class list as the black statement blocks beside them —
+				   .has-background alone would catch those too, and Hanna's red
+				   panel with it. 7 blocks across four case studies; SOREL has
+				   none, it uses a dark variant. */
+				'.entry-content .wp-block-columns[style*="background-color:#f8f8f8"] { text-align: center; }',
+				'.cs-mark { margin: 0 0 28px; }',
+				'.cs-mark img { display: block; height: auto; width: ' + (mark ? mark[2] : 70) + 'px; }'
+			].join('\n');
+			doc.head.appendChild(style);
+
+			/* Same 12-unit span as the close mark's X, centred on the same
+			   grid, so the pair match in weight and optical size. */
+			var up = doc.querySelector('#scrollup-master svg');
+			if (up) up.innerHTML = '<path d="M12 18.5V6M6 12l6-6 6 6"/>';
+
+			/* Removing the footer exposes whatever spacing sat above it as bare
+			   white at the foot of the sheet — 32px of block margin on Hanna,
+			   140px of stacked spacers on the Ruby pages. Walk back from the
+			   end past anything already hidden, drop the spacers that are now
+			   trailing, and flatten the last real block's bottom margin.
+
+			   Then give it a closing buffer as padding rather than margin:
+			   padding sits inside the block, so it takes that block's own
+			   background and the page ends on red where the last block is red
+			   and on white where it is white. A margin, or padding on the
+			   content wrapper, would always be white — which is the bar that
+			   was there before. Raised to 80px rather than added to it, so the
+			   buffer is the same depth on every case study; two of the five
+			   already carry 25px of their own and would otherwise close on a
+			   deeper gap than the rest. */
+			var kids = doc.querySelectorAll('.entry-content > *');
+			for (var i = kids.length - 1; i >= 0; i--) {
+				var tailEl = kids[i];
+				if (doc.defaultView.getComputedStyle(tailEl).display === 'none') continue;
+				if (tailEl.classList.contains('wp-block-spacer')) {
+					tailEl.style.display = 'none';
+					continue;
+				}
+				tailEl.style.marginBottom = '0';
+				var pb = parseFloat(doc.defaultView.getComputedStyle(tailEl).paddingBottom) || 0;
+				if (pb < 80) tailEl.style.paddingBottom = '80px';
+				break;
+			}
+
+			var col = doc.querySelector('.entry-content > .wp-block-columns .wp-block-column');
+			if (mark && col && !col.querySelector('.cs-mark')) {
+				var p = doc.createElement('p');
+				p.className = 'cs-mark';
+				var img = doc.createElement('img');
+				img.src = mark[0];
+				img.alt = mark[1];
+				p.appendChild(img);
+				col.insertBefore(p, col.firstChild);
+			}
+		}
+
+		/* Width the document is laid out against before being scaled up to fill
+		   a wide sheet. Raising this lowers the magnification. */
+		var CS_VIEW = 1550;
+
+		/* The document's back-to-top button is a 48px disc with a 32px glyph
+		   and scales with the page, so the close mark takes the same numbers
+		   times the same factor and the pair stay identical at any width. */
+		function sizeClose(k) {
+			cs.style.setProperty('--cs-close-size', 48 * k + 'px');
+			cs.style.setProperty('--cs-close-icon', 32 * k + 'px');
+		}
+
+		function natural() {
+			csDoc.style.width = '100%';
+			csDoc.style.height = '100%';
+			csDoc.style.transform = '';
+			sizeClose(1);
+		}
+
+		function fitDocument() {
+			if (cs.hidden) return;
+			/* Below the deck's breakpoint the sheet is too narrow to scale a
+			   desktop layout into; let the document use its own responsive
+			   rules instead. */
+			if (window.matchMedia('(max-width: 900px)').matches) return natural();
+
+			var box = csPanel.getBoundingClientRect();
+			/* getBoundingClientRect includes the 8px border the document sits
+			   inside of. */
+			var w = box.width - 16;
+			var h = box.height - 8;
+			var k = w / CS_VIEW;
+			/* Never scale down — a narrow window would otherwise be handed
+			   type smaller than the page's own. */
+			if (k <= 1) return natural();
+
+			csDoc.style.width = CS_VIEW + 'px';
+			csDoc.style.height = (h / k) + 'px';
+			csDoc.style.transform = 'scale(' + k + ')';
+			sizeClose(k);
+		}
+
+		function openCase(href, opener) {
+			csOpener = opener || null;
+
+			/* A covered video is still an intersecting video, so the playback
+			   observer would keep it running behind the sheet. */
+			csPaused = [];
+			[].forEach.call(document.querySelectorAll('.deck video, main video'), function (v) {
+				if (!v.paused) { csPaused.push(v); v.pause(); }
+			});
+
+			csDoc.onload = function () {
+				try {
+					dressDocument(csDoc.contentDocument, href);
+				} catch (err) {
+					/* Same-origin, so this should not fire — but a failed dress
+					   must not take the sheet down with it. */
+				}
+			};
+			csDoc.src = href;
+
+			document.body.classList.add('cs-open');
+			cs.hidden = false;
+			fitDocument();
+			/* Next frame, so the transition has a start state to move from. */
+			requestAnimationFrame(function () {
+				requestAnimationFrame(function () { cs.setAttribute('data-open', ''); });
+			});
+			/* Focus the dialog rather than the close button: the button would
+			   take a visible focus ring on a mouse-opened sheet, and a
+			   tabindex=-1 container does not. */
+			csPanel.focus();
+		}
+
+		function closeCase() {
+			if (cs.hidden) return;
+			cs.removeAttribute('data-open');
+			document.body.classList.remove('cs-open');
+
+			var done = function () {
+				/* Close, reopen quickly, and this listener would still be
+				   pending from the first close — it would then hide a sheet
+				   the visitor has just opened. */
+				if (cs.hasAttribute('data-open')) {
+					cs.removeEventListener('transitionend', done);
+					return;
+				}
+				cs.hidden = true;
+				/* Dropping the src stops the document, its media and its
+				   scripts; leaving it loaded keeps a second page live behind
+				   the deck for the rest of the session. */
+				csDoc.onload = null;
+				csDoc.removeAttribute('src');
+				cs.removeEventListener('transitionend', done);
+			};
+			if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) done();
+			else cs.addEventListener('transitionend', done);
+
+			csPaused.forEach(function (v) { var q = v.play(); if (q && q.catch) q.catch(function () {}); });
+			csPaused = [];
+
+			if (csOpener) csOpener.focus();
+			csOpener = null;
+		}
+
+		[].forEach.call(document.querySelectorAll('a.project__cta'), function (a) {
+			a.addEventListener('click', function (e) {
+				/* Leave the new-tab affordances alone: a middle click or a
+				   modified click should still open a real tab. */
+				if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+				e.preventDefault();
+				openCase(a.getAttribute('href'), a);
+			});
+		});
+
+		csCloseBtn.addEventListener('click', closeCase);
+
+		cs.addEventListener('mousedown', function (e) {
+			if (!csPanel.contains(e.target)) closeCase();
+		});
+
+		document.addEventListener('keydown', function (e) {
+			if (e.key === 'Escape' && !cs.hidden) closeCase();
+		});
+
+		window.addEventListener('resize', fitDocument);
+
+	}
+
 })();
