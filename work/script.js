@@ -472,6 +472,7 @@
 		var csCloseBtn = cs.querySelector('.cs__close');
 		var csOpener = null;
 		var csPaused = [];
+		var csWatch = null;
 
 		/* The deck already ships these marks. The iframe document sits at a
 		   different path, so they have to be referenced from the root. */
@@ -490,8 +491,13 @@
 		/* Everything the design asks to change about the case study document,
 		   applied from here rather than by editing six exported WordPress
 		   pages — which would have to be redone on every re-export. */
-		function dressDocument(doc, path) {
-			if (!doc || doc.getElementById('cs-dress')) return;
+		/* Split in two deliberately. The stylesheet goes in the moment the
+		   document has a <head>, which is before the body paints — waiting for
+		   load meant the raw page was on screen first, header mark, footer and
+		   all, for as long as its images took. The DOM edits below need
+		   elements to exist, so they wait for the parse instead. */
+		function dressStyle(doc, path) {
+			if (!doc || !doc.head || doc.getElementById('cs-dress')) return false;
 
 			var mark = csLogos[path];
 			var style = doc.createElement('style');
@@ -546,6 +552,13 @@
 				'.cs-mark img { display: block; height: auto; width: ' + (mark ? mark[2] : 70) + 'px; }'
 			].join('\n');
 			doc.head.appendChild(style);
+			return true;
+		}
+
+		function dressContent(doc, path) {
+			if (!doc || !doc.body || doc.body.hasAttribute('data-cs-dressed')) return;
+			doc.body.setAttribute('data-cs-dressed', '');
+			var mark = csLogos[path];
 
 			/* Same 12-unit span as the close mark's X, centred on the same
 			   grid, so the pair match in weight and optical size. */
@@ -635,6 +648,26 @@
 			sizeClose(k);
 		}
 
+		/* Polls the loading document rather than waiting on an event: the style
+		   has to land at the first moment there is a head to put it in, and no
+		   event fires there. Guarded on the document's own path so nothing is
+		   injected into about:blank or the outgoing page. */
+		function watchDocument(href) {
+			if (csWatch) clearInterval(csWatch);
+			csWatch = setInterval(function () {
+				var doc;
+				try { doc = csDoc.contentDocument; } catch (err) { return; }
+				if (!doc || !doc.location || doc.location.pathname !== href) return;
+
+				if (dressStyle(doc, href)) csDoc.setAttribute('data-ready', '');
+				if (doc.readyState === 'loading') return;
+
+				dressContent(doc, href);
+				clearInterval(csWatch);
+				csWatch = null;
+			}, 8);
+		}
+
 		function openCase(href, opener) {
 			csOpener = opener || null;
 
@@ -645,15 +678,20 @@
 				if (!v.paused) { csPaused.push(v); v.pause(); }
 			});
 
+			csDoc.removeAttribute('data-ready');
 			csDoc.onload = function () {
+				/* Backstop only — the watcher normally gets there first. */
 				try {
-					dressDocument(csDoc.contentDocument, href);
+					var doc = csDoc.contentDocument;
+					if (dressStyle(doc, href)) csDoc.setAttribute('data-ready', '');
+					dressContent(doc, href);
 				} catch (err) {
 					/* Same-origin, so this should not fire — but a failed dress
 					   must not take the sheet down with it. */
 				}
 			};
 			csDoc.src = href;
+			watchDocument(href);
 
 			document.body.classList.add('cs-open');
 			cs.hidden = false;
@@ -686,7 +724,9 @@
 				   scripts; leaving it loaded keeps a second page live behind
 				   the deck for the rest of the session. */
 				csDoc.onload = null;
+				if (csWatch) { clearInterval(csWatch); csWatch = null; }
 				csDoc.removeAttribute('src');
+				csDoc.removeAttribute('data-ready');
 				cs.removeEventListener('transitionend', done);
 			};
 			if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) done();

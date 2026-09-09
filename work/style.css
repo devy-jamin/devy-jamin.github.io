@@ -1539,6 +1539,13 @@ figure {
 	height: 100%;
 	border: 0;
 	transform-origin: top left;
+	/* Held back until its stylesheet is in — see watchDocument(). Without
+	   this the raw page flashes: header mark, footer, uncentred blocks. */
+	opacity: 0;
+}
+
+.cs__doc[data-ready] {
+	opacity: 1;
 }
 
 /* Tucked into the corner, and deliberately not tied to the document's own
