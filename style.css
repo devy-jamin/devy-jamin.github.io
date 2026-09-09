@@ -1588,11 +1588,6 @@ figure {
 	background: #ededed;
 }
 
-.cs__close:hover,
-.cs__close:focus-visible {
-	opacity: 1;
-}
-
 .cs__close svg {
 	/* The arrow's glyph is 32px on the same 24-unit grid at the same 1.6
 	   stroke, so the two marks match in size and weight at any scale. */

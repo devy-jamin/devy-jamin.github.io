@@ -539,6 +539,14 @@
 				   :root and does not cross into this document, so the value is
 				   written out; if the palette moves, this moves with it. */
 				'#scrollup-master svg path { fill: none; stroke: #1d1d1d; stroke-width: 1.6; }',
+				/* The theme's hover darkens the disc to #333 and turns the glyph
+				   white with `fill` — which does nothing to a stroked path, so
+				   the mark ended up #1d1d1d on #333, a contrast ratio of 1.3:1,
+				   and vanished under the cursor. Matched to the close button
+				   instead: the disc lightens and the mark stays put. The id
+				   selector outscores the theme's .scrollup-button:hover. */
+				'#scrollup-master { transition: background-color 0.2s ease; }',
+				'#scrollup-master:hover { background-color: #ededed; }',
 				/* The pull-quote blocks on the light grey ground read centred.
 				   Targeted on the inline background the author set rather than
 				   a class, because the theme writes the colour straight into
