@@ -529,24 +529,6 @@
 				   flush with its left edge — the same edge the section labels
 				   further down the page ("Background", "Design Decisions")
 				   align to. */
-				/* 3. The back-to-top button stays, but its glyph is drawn as a
-				   filled outline — its weight is baked into the path, so it
-				   cannot be thinned and it reads heavier than the close mark
-				   beside it. Redrawn below as a stroked arrow on the same
-				   24-unit grid and the same 1.6 stroke as the X, so the two
-				   controls are built the same way. */
-				/* #1d1d1d is --ink. The variable is declared on the deck's own
-				   :root and does not cross into this document, so the value is
-				   written out; if the palette moves, this moves with it. */
-				'#scrollup-master svg path { fill: none; stroke: #1d1d1d; stroke-width: 1.6; }',
-				/* The theme's hover darkens the disc to #333 and turns the glyph
-				   white with `fill` — which does nothing to a stroked path, so
-				   the mark ended up #1d1d1d on #333, a contrast ratio of 1.3:1,
-				   and vanished under the cursor. Matched to the close button
-				   instead: the disc lightens and the mark stays put. The id
-				   selector outscores the theme's .scrollup-button:hover. */
-				'#scrollup-master { transition: background-color 0.2s ease; }',
-				'#scrollup-master:hover { background-color: #ededed; }',
 				/* The pull-quote blocks on the light grey ground read centred.
 				   Targeted on the inline background the author set rather than
 				   a class, because the theme writes the colour straight into
@@ -567,11 +549,6 @@
 			if (!doc || !doc.body || doc.body.hasAttribute('data-cs-dressed')) return;
 			doc.body.setAttribute('data-cs-dressed', '');
 			var mark = csLogos[path];
-
-			/* Same 12-unit span as the close mark's X, centred on the same
-			   grid, so the pair match in weight and optical size. */
-			var up = doc.querySelector('#scrollup-master svg');
-			if (up) up.innerHTML = '<path d="M12 18.5V6M6 12l6-6 6 6"/>';
 
 			/* Removing the footer exposes whatever spacing sat above it as bare
 			   white at the foot of the sheet — 32px of block margin on Hanna,
