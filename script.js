@@ -477,15 +477,15 @@
 		/* The deck already ships these marks. The iframe document sits at a
 		   different path, so they have to be referenced from the root. */
 		var csLogos = {
-			'/nike-artemis-case-study/': ['/work/assets/logo-nike.svg', 'Nike', 70],
-			'/ruby-mobile-app/': ['/work/assets/logo-ruby.png', 'Ruby', 70],
-			'/ruby-ros/': ['/work/assets/logo-ruby.png', 'Ruby', 70],
-			'/sorel-site-design/': ['/work/assets/logo-sorel.svg', 'SOREL', 70],
+			'/nike-artemis-case-study/': ['/assets/logo-nike.svg', 'Nike', 70],
+			'/ruby-mobile-app/': ['/assets/logo-ruby.png', 'Ruby', 70],
+			'/ruby-ros/': ['/assets/logo-ruby.png', 'Ruby', 70],
+			'/sorel-site-design/': ['/assets/logo-sorel.svg', 'SOREL', 70],
 			/* The Hanna script mark carries more internal whitespace than the
 			   other three, so a matching bounding box reads visually smaller.
 			   Same 10% correction the deck applies at .project__logo--hanna,
 			   which also keeps the mark identical between slide and sheet. */
-			'/hanna-mobile/': ['/work/assets/logo-hanna.png', 'Hanna Andersson', 83]
+			'/hanna-mobile/': ['/assets/logo-hanna.png', 'Hanna Andersson', 83]
 		};
 
 		/* Everything the design asks to change about the case study document,

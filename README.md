@@ -10,7 +10,7 @@ Every page is a plain HTML file. To edit text, open the file and change the word
 
 | Page | File |
 |---|---|
-| Home / selected work | `index.html` |
+| Home — the scrolling deck | `index.html` |
 | Nike Artemis | `nike-artemis/index.html` |
 | Ruby ROS | `ruby-ros/index.html` |
 | Nike Launch Admin | `nike-launch-admin/index.html` |
@@ -18,8 +18,18 @@ Every page is a plain HTML file. To edit text, open the file and change the word
 | SOREL Site Design | `sorel-site-design/index.html` |
 | Hanna Andersson Mobile | `hanna-mobile/index.html` |
 | Not-found page | `404.html` |
+| Previous homepage, kept for reference | `home-archive/index.html` |
+| `/work/` — redirects to the homepage | `work/index.html` |
 
-Images live in `wp-content/uploads/<year>/<month>/`. Site styling is
+The homepage was at `/work/` until September 2026 and the WordPress-era
+homepage was at `/`. They swapped: the deck moved to the root and the old
+homepage moved to `home-archive/`, which is `noindex` and unlinked but stays
+live so the design is not lost. `/work/` is now a redirect, so old links and
+bookmarks still land in the right place.
+
+Two sets of images, from the two eras. The homepage deck uses `assets/`,
+`fonts/`, `style.css` and `script.js` at the root. The case study pages use
+`wp-content/uploads/<year>/<month>/` and
 `wp-content/themes/balasana-wpcom/style.css`. (Those folder names are left over
 from WordPress — they work fine, they're just historical.)
 
