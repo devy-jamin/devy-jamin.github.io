@@ -2101,6 +2101,96 @@ font-weight: 500;
 
 
 
+<style id="dj-toolset-css">
+/* A horizontal run of the Artemis tools. The first is shown whole with its
+   right edge on the right edge of the page; the other four sit to its left as
+   slivers wide enough to read the mark and the tool name. They run in reverse
+   order, so the whole card is rightmost and the stack reads back into the page
+   behind it.
+
+   Geometry. With the first card whole and the four slivers filling what is
+   left, step = (width - padding - card) / 4, and the overlap that implies is
+   exactly (5*card - width + padding) / 4. Solving that for the 400px overlap
+   gives the card height below; 6.18 is 5 * the 1.236 aspect, folded to keep the
+   calc readable. Every card is within 0.6% of that ratio, so one figure drives
+   the arithmetic and each keeps its own width.
+
+   Cards are placed by transform on a --slot rather than by flow, because the
+   run is in reverse order: with flex the negative margins would attach to
+   document order rather than to where each card actually sits.
+
+   Measured against the container rather than the viewport: cqw is the content
+   width exactly, where 100vw would include the scrollbar and, inside the case
+   study sheet, the width the document is scaled from rather than shown at. */
+.dj-toolset {
+	container-type: inline-size;
+	/* clip rather than hidden, so nothing is cut horizontally in normal use
+	   while the card shadows still show above and below. */
+	overflow-x: clip;
+	margin: 8px 0 24px;
+}
+
+.dj-toolset__run {
+	--tool-ar: 1.236;
+	--tool-pad: clamp(24px, 3.2cqw, 64px);
+	--tool-max-overlap: 400px;
+	--tool-h: clamp(260px, calc((100cqw - var(--tool-pad) + 4 * var(--tool-max-overlap)) / 6.18), 720px);
+	--tool-w: calc(var(--tool-h) * var(--tool-ar));
+	/* Left edge to left edge of the four slivers; the first card takes the
+	   remainder and lands flush right. */
+	--tool-step: calc((100cqw - var(--tool-pad) - var(--tool-w)) / 4);
+
+	position: relative;
+	height: var(--tool-h);
+	margin: 90px 0;
+}
+
+.dj-toolset__card {
+	position: absolute;
+	top: 0;
+	left: 0;
+	transform: translateX(calc(var(--tool-pad) + var(--slot) * var(--tool-step)));
+	z-index: var(--slot);
+	height: var(--tool-h);
+	width: auto;
+	border-radius: 14px;
+	/* The same three-stop shadow the deck's device frames carry. */
+	box-shadow:
+		0 2px 7px rgba(0, 0, 0, 0.066),
+		0 18px 44px -12px rgba(0, 0, 0, 0.266),
+		0 44px 88px -30px rgba(0, 0, 0, 0.209);
+}
+
+/* Slot 4 is the right-hand end, so document order runs backwards along the
+   run and the first tool is the one shown whole. */
+.dj-toolset__card:nth-child(1) { --slot: 4; }
+.dj-toolset__card:nth-child(2) { --slot: 3; }
+.dj-toolset__card:nth-child(3) { --slot: 2; }
+.dj-toolset__card:nth-child(4) { --slot: 1; }
+.dj-toolset__card:nth-child(5) { --slot: 0; }
+
+@media (max-width: 900px) {
+	.dj-toolset__run {
+		margin: 48px 0;
+	}
+
+	.dj-toolset__card {
+		border-radius: 9px;
+	}
+}
+</style>
+
+
+
+<div class="dj-toolset alignfull">
+<div class="dj-toolset__run">
+<img class="dj-toolset__card" src="/assets/tool-1.jpg" width="1780" height="1440" loading="lazy" decoding="async" alt="Artemis — Readiness" />
+<img class="dj-toolset__card" src="/assets/tool-2.jpg" width="1780" height="1440" loading="lazy" decoding="async" alt="Artemis — Tagging" />
+<img class="dj-toolset__card" src="/assets/tool-3.jpg" width="1774" height="1440" loading="lazy" decoding="async" alt="Artemis — Planning" />
+<img class="dj-toolset__card" src="/assets/tool-4.jpg" width="1784" height="1440" loading="lazy" decoding="async" alt="Artemis — Product Groups" />
+<img class="dj-toolset__card" src="/assets/tool-5.jpg" width="1780" height="1440" loading="lazy" decoding="async" alt="Artemis — Size Management" />
+</div>
+</div>
 <div style="height:48px" aria-hidden="true" class="wp-block-spacer"></div>
 
 
