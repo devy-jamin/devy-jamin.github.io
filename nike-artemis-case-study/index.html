@@ -2109,7 +2109,14 @@ font-weight: 500;
    so one starts fading in on the frame the previous starts fading out - no gap
    where the card would show through. animation-fill-mode is deliberately left
    at none: with `both`, frames 2 and 3 would hold the 0% value through their
-   delay and all three would be visible from the start. */
+   delay and all three would be visible from the start.
+
+   The cycle is gated on scroll: until the card is actually reached it holds
+   Readiness as a still, and the animation is only attached once it comes into
+   view, so the sequence always reads Readiness, Product Groups, Size and Fit
+   from its start rather than wherever the page-load clock happened to leave
+   it. Attaching the animation - not merely un-pausing it - is what makes the
+   restart real; a paused animation resumes mid-cycle. */
 .dj-evolve {
 	/* Padding rather than margin: the theme zeroes the vertical margin on every
 	   .entry-content > .alignfull at a specificity this selector cannot reach,
@@ -2171,7 +2178,6 @@ font-weight: 500;
 	width: 100%;
 	height: auto;
 	opacity: 0;
-	animation: dj-evolve 13.5s linear infinite;
 }
 
 .dj-evolve__frame + .dj-evolve__frame {
@@ -2179,12 +2185,22 @@ font-weight: 500;
 	inset: 0;
 }
 
-/* A negative delay on the first frame starts it a second into its hold, so the
-   card is already showing a screen on the first paint rather than fading up
-   from white. */
-.dj-evolve__frame:nth-child(1) { animation-delay: -1s; }
-.dj-evolve__frame:nth-child(2) { animation-delay: 3.5s; }
-.dj-evolve__frame:nth-child(3) { animation-delay: 8s; }
+/* Before and after the run: Readiness alone, held as a still. */
+.dj-evolve__now:not(.is-playing) .dj-evolve__frame:nth-child(1) {
+	opacity: 1;
+}
+
+.dj-evolve__now.is-playing .dj-evolve__frame {
+	animation: dj-evolve 13.5s linear infinite;
+}
+
+/* Above the shorthand's own animation-delay: 0s, which resets it. A negative
+   delay on the first frame starts it a second into its hold, so the card is
+   already showing Readiness at the moment the run begins rather than fading up
+   from white on top of the still it was already showing. */
+.dj-evolve__now.is-playing .dj-evolve__frame:nth-child(1) { animation-delay: -1s; }
+.dj-evolve__now.is-playing .dj-evolve__frame:nth-child(2) { animation-delay: 3.5s; }
+.dj-evolve__now.is-playing .dj-evolve__frame:nth-child(3) { animation-delay: 8s; }
 
 @keyframes dj-evolve {
 	0% { opacity: 0; }
@@ -2195,11 +2211,11 @@ font-weight: 500;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.dj-evolve__frame {
+	.dj-evolve__now.is-playing .dj-evolve__frame {
 		animation: none;
 	}
 
-	.dj-evolve__frame:nth-child(1) {
+	.dj-evolve__now .dj-evolve__frame:nth-child(1) {
 		opacity: 1;
 	}
 }
@@ -2246,6 +2262,45 @@ font-weight: 500;
 <img class="dj-evolve__frame" src="/assets/artemis-sizefit.jpg" width="2240" height="1974" loading="lazy" decoding="async" alt="Artemis — Size and Fit" />
 </div>
 </div>
+
+
+
+<script id="dj-evolve-js">
+/* Start the cycle when the card is scrolled to, and put it back to Readiness
+   once it has left, so every arrival at the section reads the three screens in
+   order from the beginning.
+
+   Two observers because the two edges want different geometry: the run starts
+   when the card's top has climbed into the upper four fifths of the viewport -
+   scrolled to, not merely peeking over the fold - and resets only when the
+   card is out of the viewport entirely, where the snap back to the first frame
+   cannot be seen. A ratio threshold would do the first job on a tall window
+   and fail on a short one, where the card can never occupy 40% of it.
+
+   The observers resolve against the iframe's own viewport when the page is
+   opened in the case study sheet, which is the behaviour wanted there too. */
+(function () {
+	var card = document.querySelector('.dj-evolve__now');
+	if (!card) { return; }
+
+	if (!('IntersectionObserver' in window)) {
+		card.classList.add('is-playing');
+		return;
+	}
+
+	new IntersectionObserver(function (entries) {
+		if (entries[entries.length - 1].isIntersecting) {
+			card.classList.add('is-playing');
+		}
+	}, { rootMargin: '0px 0px -20% 0px' }).observe(card);
+
+	new IntersectionObserver(function (entries) {
+		if (!entries[entries.length - 1].isIntersecting) {
+			card.classList.remove('is-playing');
+		}
+	}, { threshold: 0 }).observe(card);
+})();
+</script>
 
 
 
